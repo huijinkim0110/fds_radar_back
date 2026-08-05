@@ -1,10 +1,10 @@
-package fds.radar.account.entity;
+package fds.radar.entity.account;
 
 
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.InstitutionStatus;
+import fds.radar.common.InstitutionStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

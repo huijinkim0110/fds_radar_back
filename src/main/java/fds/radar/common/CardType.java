@@ -1,4 +1,4 @@
-package fds.radar.account.common;
+package fds.radar.common;
 
 public enum CardType {
     CREDIT("신용카드"),

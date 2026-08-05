@@ -1,4 +1,4 @@
-package fds.radar.account.common;
+package fds.radar.common;
 
 public enum AccountType {
     CHECKING("입출금"),

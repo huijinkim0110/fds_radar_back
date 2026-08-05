@@ -1,4 +1,4 @@
-package fds.radar.account.entity;
+package fds.radar.entity.account;
 
 import java.time.LocalDateTime;
 

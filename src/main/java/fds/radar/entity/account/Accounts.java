@@ -1,8 +1,8 @@
-package fds.radar.account.entity;
+package fds.radar.entity.account;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.AccountStatus;
+import fds.radar.common.AccountStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
