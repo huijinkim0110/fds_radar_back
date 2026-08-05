@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import fds.radar.common.ProductStatus;
 import fds.radar.common.ProductType;
 import fds.radar.common.RiskLevel;
+import fds.radar.entity.account.Institutions;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,7 +36,7 @@ public class FinancialProducts {
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="institution_id", nullable=false)
-    private FinancialInstitutions institution;
+    private Institutions institution;
 
     @Column(nullable=false)
     private String productName;
