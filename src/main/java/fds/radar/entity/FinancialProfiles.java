@@ -2,6 +2,7 @@ package fds.radar.entity;
 
 import java.time.LocalDateTime;
 
+import fds.radar.common.IncomeSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,17 +39,10 @@ public class FinancialProfiles {
     private String occupation;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "income_source", nullable = false)
+    @Column( nullable = false)
     private IncomeSource incomeSource;
 
-    public enum IncomeSource {
-        EARNED_INCOME,
-        BUSINESS_INCOME,
-        PENSION_INCOME,
-        INVESTMENT_INCOME,
-        OTHERM,
-        NONE
-    }
+    
 
     @Column(nullable = false)
     private Long monthlyIncome;

@@ -3,6 +3,7 @@ package fds.radar.entity.account;
 import java.time.LocalDateTime;
 
 import fds.radar.common.AccountStatus;
+import fds.radar.common.AccountType;
 import fds.radar.entity.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;import jakarta.persistence.EnumType;
@@ -44,14 +45,9 @@ public class Accounts {
     private String accountNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false)
+    @Column(nullable = false)
     private AccountType accountType;
 
-    public enum AccountType {
-        CHECKING,
-        DEPOSIT,
-        SAVINGS;
-    }
 
     @Column(nullable = false)
     private Long balance;
