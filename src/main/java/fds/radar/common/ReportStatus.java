@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ReportStatus {
-    RECEIVED("접수")
+    RECEIVED("접수"),
     UNDER_REVIEW("검토중"),
     PROCESSED("처리 완료");
 

@@ -1,10 +1,9 @@
-package fds.radar.entity.dispute;
+package fds.radar.entity;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.RequestStatus;
-import fds.radar.entity.Users;
-import fds.radar.entity.transaction.Transactions;
+import fds.radar.common.FinancialCategory;
+import fds.radar.common.RecordType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,32 +26,26 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DisputeRequests {
+public class FinancialRecords {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long disputeRequestId;
+    private Long financialRecordId;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
     private Users user;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="transaction_id", nullable=false)
-    private Transactions transaction;
-
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="fraud_report_id", nullable=false)
-    private FraudReports fraudReport;
-
-    @Column(columnDefinition = "TEXT")
-    private String requestReason;
-    private Integer requestAmount;
-
     @Enumerated(EnumType.STRING)
-    private RequestStatus requestStatus;
+    private RecordType recordType;
+    @Enumerated(EnumType.STRING)
+    private FinancialCategory financialCategory;
 
+    private Long amount;
+    
     @Column(columnDefinition = "TEXT")
-    private String adminResponse;
-    private LocalDateTime requestedAt;
-    private LocalDateTime processedAt;
+    private String description;
+
+    private LocalDateTime occurredAt;
+    private LocalDateTime createdAt;
+    
 }
