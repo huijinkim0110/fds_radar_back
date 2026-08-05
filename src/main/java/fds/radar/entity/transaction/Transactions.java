@@ -2,13 +2,22 @@ package fds.radar.entity.transaction;
 
 import java.time.LocalDateTime;
 
+import javax.smartcardio.Card;
+
+import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
+
+import fds.radar.entity.account.Accounts;
+import fds.radar.entity.account.TransferRecipients;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,25 +31,30 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transactions {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private Long accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = true)
+    private Accounts account;
 
-    @Column(nullable = false)
-    private Long cardId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id", nullable = true)
+    private Card card;
 
-    @Column(nullable = false)
-    private Long recipientId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_id", nullable = true)
+    private TransferRecipients recipient;
 
-    @Column(nullable = false)
-    private Long merchantId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_id", nullable = true)
+    private Merchants merchant;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
@@ -63,15 +77,16 @@ public class Transactions {
         WEB,
         ATM
     }
-    
+
     @Column(nullable = false)
     private String countryCode;
 
     @Column(nullable = false)
     private String region;
 
-    @Column(nullable = false)
-    private Long deviceId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "device_id", nullable = true) // 기기 정보 수집이 필수라면 nullable = false
+    private UserDevices device;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_status", nullable = false)
