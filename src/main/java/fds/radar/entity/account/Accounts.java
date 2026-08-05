@@ -1,15 +1,18 @@
-package fds.radar.account.entity;
+package fds.radar.entity.account;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.AccountStatus;
+import fds.radar.common.AccountStatus;
+import fds.radar.entity.Users;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
+import jakarta.persistence.Entity;import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,11 +31,13 @@ public class Accounts {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountId;
 
-    @Column(nullable = false)    
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
 
-    @Column(nullable = false)
-    private Long institutionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", nullable = false)
+    private Institutions institution;
 
     // 계좌번호 (후에 자동 생성 로직으로 변경)
     @Column(unique = true, nullable = false)

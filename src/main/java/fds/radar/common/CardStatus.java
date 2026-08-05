@@ -1,18 +1,19 @@
-package fds.radar.account.common;
+package fds.radar.common;
 
-public enum InstitutionStatus {
+public enum CardStatus {
     ACTIVE("활성"),
-    INACTIVE("비활성");
+    SUSPENDED("일시정지"),
+    LOCKED("잠금"),
+    EXPIRED("만료");
 
     private final String description;
 
-    InstitutionStatus(String description) {
+    CardStatus(String description) {
         this.description = description;
     }
 
     public String getDescription() {
         return description;
-        
     }
 
 }
