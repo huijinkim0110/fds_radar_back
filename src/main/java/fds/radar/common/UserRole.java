@@ -1,5 +1,9 @@
-package fds.radar.enum;
+package fds.radar.common;
 
-public class UserRole {
-    
+import lombok.Getter;
+
+@Getter
+public enum UserRole {
+    USER,
+    ADMIN
 }
