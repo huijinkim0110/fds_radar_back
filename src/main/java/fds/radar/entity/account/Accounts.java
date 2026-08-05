@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.AccountStatus;
 import fds.radar.entity.user.Users;
+import fds.radar.common.AccountType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;import jakarta.persistence.EnumType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -44,14 +46,9 @@ public class Accounts {
     private String accountNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false)
+    @Column(nullable = false)
     private AccountType accountType;
 
-    public enum AccountType {
-        CHECKING,
-        DEPOSIT,
-        SAVINGS;
-    }
 
     @Column(nullable = false)
     private Long balance;

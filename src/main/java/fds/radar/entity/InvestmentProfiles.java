@@ -3,6 +3,10 @@ package fds.radar.entity;
 import java.time.LocalDateTime;
 
 import fds.radar.entity.user.Users;
+import fds.radar.common.InvestmentExperience;
+import fds.radar.common.LossTolerance;
+import fds.radar.common.PreferredPeriod;
+import fds.radar.common.RiskTendency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,7 +30,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvestmentProfiles {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long investmentProfileId;
@@ -36,47 +40,20 @@ public class InvestmentProfiles {
     private Users user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "risk_tendency", nullable = false)
+    @Column(nullable = false)
     private RiskTendency riskTendency;
 
-    public enum RiskTendency {
-        STABLE,
-        NEUTRAL,
-        ACTIVE,
-        AGGRESSIVE
-    }
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "investment_experience", nullable = false)
+    @Column(nullable = false)
     private InvestmentExperience investmentExperience;
 
-    public enum InvestmentExperience {
-        NONE,
-        BEGINNER,
-        INTERMEDIATE,
-        EXPERIENCED
-    }
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "loss_tolerance", nullable = false)
+    @Column(nullable = false)
     private LossTolerance lossTolerance;
 
-    public enum LossTolerance {
-        NONE,
-        LOW,
-        MEDIUM,
-        HIGH
-    }
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "preferred_period", nullable = false)
+    @Column(nullable = false)
     private PreferredPeriod preferredPeriod;
-
-    public enum PreferredPeriod {
-        SHORT_TERM,
-        MEDIUM_TERM,
-        LONG_TERM
-    }
 
     @Column(nullable = false)
     private boolean pricipalProtectionPreference;

@@ -1,6 +1,6 @@
 package fds.radar.common;
 
-public enum investmentExperience {
+public enum InvestmentExperience {
     NONE("투자 경험 없음"),
     BEGINNER("예/적금 등 안전자산 위주 경험"),
     INTERMEDIATE("펀드, 채권 등 경험 있음"),
@@ -8,7 +8,7 @@ public enum investmentExperience {
 
     private final String statusName;
 
-    investmentExperience(String statusName) {
+    InvestmentExperience(String statusName) {
         this.statusName = statusName;
     }
 

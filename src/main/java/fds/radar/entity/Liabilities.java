@@ -1,11 +1,11 @@
 package fds.radar.entity;
 
-
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDateTime;
 
 import fds.radar.entity.user.Users;
+import fds.radar.common.LiabilityType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,7 +29,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Liabilities {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long liabilityId;
@@ -39,18 +39,8 @@ public class Liabilities {
     private Users user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "liability_type", nullable = false)
+    @Column(nullable = false)
     private LiabilityType liabilityType;
-
-    // Enum 정의
-    public enum LiabilityType {
-        CREDIT_LOAN,
-        MORTGAGE,
-        AUTO_LOAN,
-        STUDENT_LOAN,
-        CARD_LOAN,
-        OTHER_LIABILITY
-    }
 
     // 대출 기관명
     @Column(nullable = false)
@@ -67,7 +57,7 @@ public class Liabilities {
     // 이자율 (총 4자리 중 소수점 아래 2자리, 최대 99.99%)
     @Column(name = "interest_rate", precision = 4, scale = 2, nullable = false)
     private BigDecimal interestRate;
-    
+
     // 월 상환액
     @Column(nullable = false)
     private Long monthlyPayment;
@@ -76,8 +66,8 @@ public class Liabilities {
     @Column(nullable = false)
     private Date maturityDate;
 
-    // 부채 등록 시점 
+    // 부채 등록 시점
     @Column(nullable = false)
-    private LocalDateTime createdAt; 
+    private LocalDateTime createdAt;
 
 }
