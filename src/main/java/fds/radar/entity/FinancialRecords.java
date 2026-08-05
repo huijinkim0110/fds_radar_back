@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.FinancialCategory;
 import fds.radar.common.RecordType;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

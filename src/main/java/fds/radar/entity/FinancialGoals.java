@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.GoalStatus;
 import fds.radar.common.GoalType;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

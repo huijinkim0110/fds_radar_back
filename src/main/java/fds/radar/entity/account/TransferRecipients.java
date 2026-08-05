@@ -2,7 +2,7 @@ package fds.radar.entity.account;
 
 import java.time.LocalDateTime;
 
-import fds.radar.entity.Users;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

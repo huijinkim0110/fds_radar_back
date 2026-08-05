@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.ReportStatus;
 import fds.radar.common.ReportType;
-import fds.radar.entity.Users;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.transaction.Transactions;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

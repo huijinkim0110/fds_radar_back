@@ -3,8 +3,8 @@ package fds.radar.entity.dispute;
 import java.time.LocalDateTime;
 
 import fds.radar.common.RequestStatus;
-import fds.radar.entity.Users;
 import fds.radar.entity.transaction.Transactions;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

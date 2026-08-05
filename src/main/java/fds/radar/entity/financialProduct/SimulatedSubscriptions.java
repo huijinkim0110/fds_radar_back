@@ -3,7 +3,7 @@ package fds.radar.entity.financialProduct;
 import java.time.LocalDateTime;
 
 import fds.radar.common.SubscriptionStatus;
-import fds.radar.entity.Users;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
