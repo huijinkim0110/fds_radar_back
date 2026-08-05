@@ -3,6 +3,8 @@ package fds.radar.entity;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import fds.radar.common.UserRole;
+import fds.radar.common.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

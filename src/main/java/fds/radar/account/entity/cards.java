@@ -3,7 +3,7 @@ package fds.radar.account.entity;
 import java.time.LocalDateTime;
 
 import fds.radar.account.common.CardStatus;
-import fds.radar.account.common.cardType;
+import fds.radar.account.common.CardType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,7 +23,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class cards {
+public class Cards {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +44,7 @@ public class cards {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "card_type", nullable = false)
-    private cardType cardType;
+    private CardType cardType;
 
     @Column(nullable = false)
     private Long creaditLimit;
