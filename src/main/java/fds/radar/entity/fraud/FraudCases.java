@@ -7,6 +7,7 @@ import fds.radar.common.CaseStatus;
 import fds.radar.common.FraudDecision;
 import fds.radar.common.UserConfirmation;
 import fds.radar.entity.Users;
+import fds.radar.entity.transaction.Transactions;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

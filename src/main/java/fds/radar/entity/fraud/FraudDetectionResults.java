@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.PredictedFraudType;
 import fds.radar.common.PredictedResult;
+import fds.radar.entity.transaction.Transactions;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
