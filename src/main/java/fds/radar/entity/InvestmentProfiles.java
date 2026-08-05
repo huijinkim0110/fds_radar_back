@@ -24,7 +24,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InvestmemtProfiles {
+public class InvestmentProfiles {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
