@@ -1,4 +1,4 @@
-package fds.radar.account.common;
+package fds.radar.common;
 
 import lombok.Getter;
 

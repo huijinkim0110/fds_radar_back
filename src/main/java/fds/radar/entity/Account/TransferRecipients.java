@@ -1,4 +1,4 @@
-package fds.radar.account.entity;
+package fds.radar.entity.Account;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +19,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class transferRecipients {
+public class TransferRecipients {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

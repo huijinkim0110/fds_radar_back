@@ -2,8 +2,8 @@ package fds.radar.entity.fraud;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.CaseStatus;
-import fds.radar.account.common.FraudActionType;
+import fds.radar.common.CaseStatus;
+import fds.radar.common.FraudActionType;
 import fds.radar.entity.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

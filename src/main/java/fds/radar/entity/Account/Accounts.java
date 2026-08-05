@@ -1,9 +1,8 @@
-package fds.radar.account.entity;
+package fds.radar.entity.Account;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.CardStatus;
-import fds.radar.account.common.CardType;
+import fds.radar.common.AccountStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,46 +22,45 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cards {
+public class Accounts {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cardId;
+    private Long accountId;
 
-    @Column(nullable = false)
+    @Column(nullable = false)    
     private Long userId;
 
     @Column(nullable = false)
     private Long institutionId;
 
-    // 카드 번소 -> UI 표시할 때 마스킹 패턴 표시
-    @Column(nullable = false)
-    private String cardNumber; 
-
-    @Column(nullable = false)
-    private String cardName;
+    // 계좌번호 (후에 자동 생성 로직으로 변경)
+    @Column(unique = true, nullable = false)
+    private String accountNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "card_type", nullable = false)
-    private CardType cardType;
+    @Column(name = "account_type", nullable = false)
+    private AccountType accountType;
+
+    public enum AccountType {
+        CHECKING,
+        DEPOSIT,
+        SAVINGS;
+    }
 
     @Column(nullable = false)
-    private Long creaditLimit;
-
-    @Column(nullable = false)
-    private Long availableLimit;
+    private Long balance;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "card_status", nullable = false)
+    @Column(name = "account_status", nullable = false)
     @Builder.Default
-    private CardStatus status = CardStatus.ACTIVE;
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
 
-    // 카드 발급 시점
     @Column(nullable = false)
-    private LocalDateTime issuedAt;
+    private Long dailyTransferLimit;
 
-    // 카드 만료 시점
     @Column(nullable = false)
-    private LocalDateTime expiredAt;
+    private LocalDateTime openedAt;
+
+    
 }
-

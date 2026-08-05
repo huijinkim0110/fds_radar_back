@@ -3,8 +3,8 @@ package fds.radar.entity.fraud;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.PredictedFraudType;
-import fds.radar.account.common.PredictedResult;
+import fds.radar.common.PredictedFraudType;
+import fds.radar.common.PredictedResult;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

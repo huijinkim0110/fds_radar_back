@@ -1,4 +1,4 @@
-package fds.radar.account.common;
+package fds.radar.common;
 
 public enum AccountStatus {
     ACTIVE("활동 중"),

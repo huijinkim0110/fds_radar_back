@@ -2,10 +2,10 @@ package fds.radar.entity.fraud;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.CasePriority;
-import fds.radar.account.common.CaseStatus;
-import fds.radar.account.common.FraudDecision;
-import fds.radar.account.common.UserConfirmation;
+import fds.radar.common.CasePriority;
+import fds.radar.common.CaseStatus;
+import fds.radar.common.FraudDecision;
+import fds.radar.common.UserConfirmation;
 import fds.radar.entity.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

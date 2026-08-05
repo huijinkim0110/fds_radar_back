@@ -1,8 +1,9 @@
-package fds.radar.account.entity;
+package fds.radar.entity.Account;
 
 import java.time.LocalDateTime;
 
-import fds.radar.account.common.AccountStatus;
+import fds.radar.common.CardStatus;
+import fds.radar.common.CardType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,45 +23,46 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Accounts {
+public class Cards {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private Long cardId;
 
-    @Column(nullable = false)    
+    @Column(nullable = false)
     private Long userId;
 
     @Column(nullable = false)
     private Long institutionId;
 
-    // 계좌번호 (후에 자동 생성 로직으로 변경)
-    @Column(unique = true, nullable = false)
-    private String accountNumber;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false)
-    private AccountType accountType;
-
-    public enum AccountType {
-        CHECKING,
-        DEPOSIT,
-        SAVINGS;
-    }
+    // 카드 번소 -> UI 표시할 때 마스킹 패턴 표시
+    @Column(nullable = false)
+    private String cardNumber; 
 
     @Column(nullable = false)
-    private Long balance;
+    private String cardName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
+    @Column(name = "card_type", nullable = false)
+    private CardType cardType;
+
+    @Column(nullable = false)
+    private Long creaditLimit;
+
+    @Column(nullable = false)
+    private Long availableLimit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "card_status", nullable = false)
     @Builder.Default
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    private CardStatus status = CardStatus.ACTIVE;
 
+    // 카드 발급 시점
     @Column(nullable = false)
-    private Long dailyTransferLimit;
+    private LocalDateTime issuedAt;
 
+    // 카드 만료 시점
     @Column(nullable = false)
-    private LocalDateTime openedAt;
-
-    
+    private LocalDateTime expiredAt;
 }
+
