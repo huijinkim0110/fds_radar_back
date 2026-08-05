@@ -8,7 +8,6 @@ import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
 
 import fds.radar.common.TransactionChannel;
 import fds.radar.common.TransactionType;
-import fds.radar.entity.UserDevices;
 import fds.radar.entity.account.Accounts;
 import fds.radar.entity.account.TransferRecipients;
 import fds.radar.entity.user.UserDevices;

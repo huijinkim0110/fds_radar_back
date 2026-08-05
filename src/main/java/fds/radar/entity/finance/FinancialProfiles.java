@@ -1,11 +1,9 @@
-package fds.radar.entity;
+package fds.radar.entity.finance;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.FailureReason;
-import fds.radar.common.LoginResult;
-import fds.radar.entity.user.UserDevices;
 import fds.radar.entity.user.Users;
+import fds.radar.common.IncomeSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,37 +18,50 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
-public class LoginHistories {
+public class FinancialProfiles {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long loginHistoryId;
+    private Long financialProfileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_id", nullable=false)
-    private UserDevices userDevice;
-
     @Column(nullable = false)
-    private String ipAddress;
+    private String occupation;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private LoginResult loginResult;
-
-    @Enumerated(EnumType.STRING)
-    private FailureReason failureReason;
+    @Column( nullable = false)
+    private IncomeSource incomeSource;
 
     @Column(nullable = false)
-    private LocalDateTime attemptedAt;
+    private Long monthlyIncome;
 
+    @Column(nullable = false)
+    private Long monthlyExpenses;
+
+    @Column(nullable = false)
+    private Integer creditLevel;
+
+    @Column(nullable = false)
+    private Long availableMonthlyAmount;
+
+    @Column(nullable = false)
+    private Long emergencyFundAmount;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+    
 }

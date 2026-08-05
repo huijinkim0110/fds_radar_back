@@ -1,11 +1,12 @@
-package fds.radar.entity;
+package fds.radar.entity.finance;
 
-import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 import fds.radar.entity.user.Users;
-import fds.radar.common.LiabilityType;
+import fds.radar.common.InvestmentExperience;
+import fds.radar.common.LossTolerance;
+import fds.radar.common.PreferredPeriod;
+import fds.radar.common.RiskTendency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,11 +29,11 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Liabilities {
+public class InvestmentProfiles {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long liabilityId;
+    private Long investmentProfileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -40,34 +41,26 @@ public class Liabilities {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LiabilityType liabilityType;
+    private RiskTendency riskTendency;
 
-    // 대출 기관명
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String lenderName;
+    private InvestmentExperience investmentExperience;
 
-    // 최초 대출 원금
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long originalAmount;
+    private LossTolerance lossTolerance;
 
-    // 남은 상환 금액
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long remainingAmount;
+    private PreferredPeriod preferredPeriod;
 
-    // 이자율 (총 4자리 중 소수점 아래 2자리, 최대 99.99%)
-    @Column(name = "interest_rate", precision = 4, scale = 2, nullable = false)
-    private BigDecimal interestRate;
-
-    // 월 상환액
     @Column(nullable = false)
-    private Long monthlyPayment;
+    private boolean pricipalProtectionPreference;
 
-    // 만기일
     @Column(nullable = false)
-    private Date maturityDate;
+    private Integer diagnosisScore;
 
-    // 부채 등록 시점
     @Column(nullable = false)
-    private LocalDateTime createdAt;
-
+    private LocalDateTime diagnosedAt;
 }

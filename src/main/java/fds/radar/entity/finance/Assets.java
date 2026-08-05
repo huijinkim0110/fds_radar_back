@@ -1,9 +1,8 @@
-package fds.radar.entity;
+package fds.radar.entity.finance;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.GoalStatus;
-import fds.radar.common.GoalType;
+import fds.radar.common.AssetType;
 import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,27 +25,22 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FinancialGoals {
+public class Assets {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long goalId;
-    
+    private Long assetId;
+
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
-    private Users userId;
+    private Users user;
 
     @Enumerated(EnumType.STRING)
-    private GoalType goalType;
-    private String goalName;
-    private Long targetAmount;
-    private Long currentAmount;
-    private LocalDateTime targetDate;
-    private Long monthlyTargetAmount;
-    // 목표를 설정하면 자동적으로 진행중 상태
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private GoalStatus goalStatus = GoalStatus.IN_PROGRESS;
+    private AssetType assetType;
 
+    private String assetName;
+    private String institutionName;
+    private Long currentValue;
+
+    private LocalDateTime evaluatedAt;
     private LocalDateTime createdAt;
-    private LocalDateTime completedAt;
 }

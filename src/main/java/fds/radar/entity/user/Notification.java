@@ -1,10 +1,9 @@
-package fds.radar.entity;
+package fds.radar.entity.user;
 
 import java.time.LocalDateTime;
 
 import fds.radar.common.NotificationType;
 import fds.radar.common.RelatedType;
-import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

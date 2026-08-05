@@ -2,8 +2,8 @@ package fds.radar.entity.recommendation;
 
 import java.time.LocalDateTime;
 
-import fds.radar.entity.FinancialGoals;
-import fds.radar.entity.InvestmentProfiles;
+import fds.radar.entity.finance.FinancialGoals;
+import fds.radar.entity.finance.InvestmentProfiles;
 import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
