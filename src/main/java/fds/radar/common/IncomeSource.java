@@ -6,7 +6,7 @@ public enum IncomeSource {
     PENSION_INCOME("연금소득"),
     INVESTMENT_INCOME("이자 · 배당 · 투자소득"),
     OTHERM("임대소득 등"),
-    NONE("없음")
+    NONE("없음");
 
     private final String description;
 
