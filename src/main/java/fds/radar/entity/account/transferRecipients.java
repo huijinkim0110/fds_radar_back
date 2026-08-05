@@ -19,7 +19,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class transferRecipients {
+public class TransferRecipients {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
