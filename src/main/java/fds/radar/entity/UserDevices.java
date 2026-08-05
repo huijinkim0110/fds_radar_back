@@ -1,5 +1,7 @@
 package fds.radar.entity;
 
+import java.time.LocalDateTime;
+
 import fds.radar.common.DeviceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -37,4 +40,27 @@ public class UserDevices {
     @Enumerated(EnumType.STRING)
     @Column(name = "device_type", nullable = false)
     private DeviceType deviceType;
+
+    @Column(name = "device_identifier")
+    private String deviceIdentifier;
+
+    @Column(name = "trusted")
+    @Builder.Default
+    private Boolean trusted = false;
+
+    @Column(name = "blocked")
+    @Builder.Default
+    private Boolean blocked = false;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastloginAt;
+
+    @Column(name = "registered_at")
+    private LocalDateTime registeredAt;
+
+    @PrePersist
+    public void PrePersist() {
+        this.registeredAt = LocalDateTime.now();
+    }
+
 }
