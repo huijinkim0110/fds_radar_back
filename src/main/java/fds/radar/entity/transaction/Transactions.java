@@ -2,15 +2,15 @@ package fds.radar.entity.transaction;
 
 import java.time.LocalDateTime;
 
-import javax.smartcardio.Card;
-
-import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
 
 import fds.radar.common.TransactionChannel;
+import fds.radar.common.TransactionStatus;
 import fds.radar.common.TransactionType;
 import fds.radar.entity.account.Accounts;
+import fds.radar.entity.account.Cards;
 import fds.radar.entity.account.TransferRecipients;
 import fds.radar.entity.user.UserDevices;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,7 +41,7 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users users;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = true)
@@ -49,7 +49,7 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = true)
-    private Card card;
+    private Cards cards;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_id", nullable = true)
@@ -82,7 +82,7 @@ public class Transactions {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String transactionStatus;
+    private TransactionStatus transactionStatus;
 
     @Column(nullable = false)
     private LocalDateTime occurredAt; // 거래 발생 시점
