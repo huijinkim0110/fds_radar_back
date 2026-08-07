@@ -61,6 +61,6 @@ public class UserDevices {
     @PrePersist
     public void PrePersist() {
         this.registeredAt = LocalDateTime.now();
-    }
+    } 
 
 }
