@@ -44,7 +44,8 @@ public class SimulatedSubscriptions {
     private Long expectedMaturityAmount;
 
     @Enumerated(EnumType.STRING)
-    private SubscriptionStatus subscriptionStatus;
+    @Builder.Default
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.ACTIVE;
 
     private LocalDateTime subscribedAt;
     private LocalDateTime cancelledAt;

@@ -33,7 +33,7 @@ public class FinancialGoals {
     
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
-    private Users userId;
+    private Users user;
 
     @Enumerated(EnumType.STRING)
     private GoalType goalType;
