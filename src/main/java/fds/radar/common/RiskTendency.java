@@ -1,7 +1,7 @@
 package fds.radar.common;
 
 public enum RiskTendency {
-    STABLE("안정형(원급 손실 최소화 우선"),
+    STABLE("안정형(원금 손실 최소화 우선"),
     NEUTRAL("중립형"),
     ACTIVE("적극형"),
     AGGRESSIVE("공격형(고위험 · 고수익 추구)");
