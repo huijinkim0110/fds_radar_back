@@ -2,12 +2,15 @@ package fds.radar.entity.transaction;
 
 import java.time.LocalDateTime;
 
-import javax.smartcardio.Card;
 
-import org.springframework.boot.security.autoconfigure.SecurityProperties.User;
-
+import fds.radar.common.TransactionChannel;
+import fds.radar.common.TransactionStatus;
+import fds.radar.common.TransactionType;
 import fds.radar.entity.account.Accounts;
+import fds.radar.entity.account.Cards;
 import fds.radar.entity.account.TransferRecipients;
+import fds.radar.entity.user.UserDevices;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,7 +41,7 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users users;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = true)
@@ -46,7 +49,7 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = true)
-    private Card card;
+    private Cards cards;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipient_id", nullable = true)
@@ -57,26 +60,15 @@ public class Transactions {
     private Merchants merchant;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false)
+    @Column(nullable = false)
     private TransactionType transactionType;
-
-    public enum TransactionType {
-        CARD_PAYMNENT,
-        ACCOUNT_TRANSFER
-    }
 
     @Column(name = "amount", nullable = false)
     private Long amount; // 원 단위 거래 금액
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_channel", nullable = false)
+    @Column(nullable = false)
     private TransactionChannel transactionChannel;
-
-    public enum TransactionChannel {
-        APP,
-        WEB,
-        ATM
-    }
 
     @Column(nullable = false)
     private String countryCode;
@@ -89,14 +81,8 @@ public class Transactions {
     private UserDevices device;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_status", nullable = false)
-    private String transactionStatus;
-
-    public enum TransactionStatus {
-        APPROVED,
-        PENDING,
-        CANCELED
-    }
+    @Column(nullable = false)
+    private TransactionStatus transactionStatus;
 
     @Column(nullable = false)
     private LocalDateTime occurredAt; // 거래 발생 시점

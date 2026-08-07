@@ -1,9 +1,8 @@
-package fds.radar.entity;
+package fds.radar.entity.user;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.FinancialCategory;
-import fds.radar.common.RecordType;
+import fds.radar.common.DeviceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,34 +17,38 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FinancialRecords {
+public class UserDevices {
+    
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long financialRecordId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long deviceId;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
     private Users user;
 
-    @Enumerated(EnumType.STRING)
-    private RecordType recordType;
-    @Enumerated(EnumType.STRING)
-    private FinancialCategory financialCategory;
+    private String deviceName;
 
-    private Long amount;
-    
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DeviceType deviceType;
 
-    private LocalDateTime occurredAt;
-    private LocalDateTime createdAt;
-    
+    private String deviceIdentifier;
+
+    @Builder.Default
+    private Boolean trusted = false;
+
+    @Builder.Default
+    private Boolean blocked = false;
+
+    private LocalDateTime lastloginAt;
+    private LocalDateTime registeredAt;
+
+  
 }

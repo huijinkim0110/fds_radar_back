@@ -2,7 +2,10 @@ package fds.radar.entity.recommendation;
 
 import java.time.LocalDateTime;
 
-import fds.radar.entity.Users;
+import fds.radar.entity.dispute.AiModels;
+import fds.radar.entity.finance.FinancialGoals;
+import fds.radar.entity.finance.InvestmentProfiles;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

@@ -1,10 +1,9 @@
-package fds.radar.entity.account;
+package fds.radar.entity.finance;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.AccountStatus;
 import fds.radar.entity.user.Users;
-import fds.radar.common.AccountType;
+import fds.radar.common.IncomeSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,42 +26,42 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Accounts {
+public class FinancialProfiles {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private Long financialProfileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institution_id", nullable = false)
-    private Institutions institution;
-
-    // 계좌번호 (후에 자동 생성 로직으로 변경)
-    @Column(unique = true, nullable = false)
-    private String accountNumber;
+    @Column(nullable = false)
+    private String occupation;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AccountType accountType;
-
-
-    @Column(nullable = false)
-    private Long balance;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
-    @Builder.Default
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+    @Column( nullable = false)
+    private IncomeSource incomeSource;
 
     @Column(nullable = false)
-    private Long dailyTransferLimit;
+    private Long monthlyIncome;
 
     @Column(nullable = false)
-    private LocalDateTime openedAt;
+    private Long monthlyExpenses;
 
+    @Column(nullable = false)
+    private Integer creditLevel;
+
+    @Column(nullable = false)
+    private Long availableMonthlyAmount;
+
+    @Column(nullable = false)
+    private Long emergencyFundAmount;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
     
 }

@@ -1,11 +1,9 @@
-package fds.radar.entity.dispute;
+package fds.radar.entity.user;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.LockRequestStatus;
-import fds.radar.common.RequestTargetType;
-import fds.radar.entity.fraud.FraudCases;
-import fds.radar.entity.user.Users;
+import fds.radar.common.NotificationType;
+import fds.radar.common.RelatedType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,28 +26,28 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LockRequests {
+public class Notification {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long lockRequestId;
+    private Long notificationId;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
     private Users user;
 
     @Enumerated(EnumType.STRING)
-    private RequestTargetType targetType;
-    @Column(columnDefinition = "TEXT")
-    private String requestReason;
+    private NotificationType notificationType;
 
+    private String notificationTitle;
+    @Column(columnDefinition = "TEXT")    
+    private String notificationContent;
     @Enumerated(EnumType.STRING)
-    private LockRequestStatus requestStatus;
+    private RelatedType relatedType;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="fraud_case_id", nullable=false)
-    private FraudCases fraudCase;
+    // PK값 어케 가져오지
+    private Long relatedId;
 
-    private LocalDateTime requestedAt;
-    private LocalDateTime processedAt;
-    
+    @Builder.Default
+    private boolean readStatus = false;
+    private LocalDateTime createdAt;
 }

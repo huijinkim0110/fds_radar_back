@@ -1,8 +1,9 @@
-package fds.radar.entity;
+package fds.radar.entity.finance;
 
 import java.time.LocalDateTime;
 
 import fds.radar.common.AssetType;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,7 +40,7 @@ public class Assets {
     private String assetName;
     private String institutionName;
     private Long currentValue;
-    
+
     private LocalDateTime evaluatedAt;
     private LocalDateTime createdAt;
 }

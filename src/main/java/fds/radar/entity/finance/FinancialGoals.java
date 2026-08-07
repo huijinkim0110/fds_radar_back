@@ -1,12 +1,10 @@
-package fds.radar.entity.dispute;
+package fds.radar.entity.finance;
 
 import java.time.LocalDateTime;
 
-import fds.radar.common.LockRequestStatus;
-import fds.radar.common.RequestTargetType;
-import fds.radar.entity.fraud.FraudCases;
+import fds.radar.common.GoalStatus;
+import fds.radar.common.GoalType;
 import fds.radar.entity.user.Users;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,28 +26,27 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LockRequests {
+public class FinancialGoals {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long lockRequestId;
-
+    private Long goalId;
+    
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
-    private Users user;
+    private Users userId;
 
     @Enumerated(EnumType.STRING)
-    private RequestTargetType targetType;
-    @Column(columnDefinition = "TEXT")
-    private String requestReason;
-
+    private GoalType goalType;
+    private String goalName;
+    private Long targetAmount;
+    private Long currentAmount;
+    private LocalDateTime targetDate;
+    private Long monthlyTargetAmount;
+    // 목표를 설정하면 자동적으로 진행중 상태
     @Enumerated(EnumType.STRING)
-    private LockRequestStatus requestStatus;
+    @Builder.Default
+    private GoalStatus goalStatus = GoalStatus.IN_PROGRESS;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="fraud_case_id", nullable=false)
-    private FraudCases fraudCase;
-
-    private LocalDateTime requestedAt;
-    private LocalDateTime processedAt;
-    
+    private LocalDateTime createdAt;
+    private LocalDateTime completedAt;
 }

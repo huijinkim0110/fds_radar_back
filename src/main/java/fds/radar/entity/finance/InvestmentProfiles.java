@@ -1,10 +1,12 @@
-package fds.radar.entity;
+package fds.radar.entity.finance;
 
-
-import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDateTime;
 
+import fds.radar.entity.user.Users;
+import fds.radar.common.InvestmentExperience;
+import fds.radar.common.LossTolerance;
+import fds.radar.common.PreferredPeriod;
+import fds.radar.common.RiskTendency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,56 +29,38 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Liabilities {
-    
+public class InvestmentProfiles {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long liabilityId;
+    private Long investmentProfileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "liability_type", nullable = false)
-    private LiabilityType liabilityType;
-
-    // Enum 정의
-    public enum LiabilityType {
-        CREDIT_LOAN,
-        MORTGAGE,
-        AUTO_LOAN,
-        STUDENT_LOAN,
-        CARD_LOAN,
-        OTHER_LIABILITY
-    }
-
-    // 대출 기관명
     @Column(nullable = false)
-    private String lenderName;
+    private RiskTendency riskTendency;
 
-    // 최초 대출 원금
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long originalAmount;
+    private InvestmentExperience investmentExperience;
 
-    // 남은 상환 금액
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long remainingAmount;
+    private LossTolerance lossTolerance;
 
-    // 이자율 (총 4자리 중 소수점 아래 2자리, 최대 99.99%)
-    @Column(name = "interest_rate", precision = 4, scale = 2, nullable = false)
-    private BigDecimal interestRate;
-    
-    // 월 상환액
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Long monthlyPayment;
+    private PreferredPeriod preferredPeriod;
 
-    // 만기일
     @Column(nullable = false)
-    private Date maturityDate;
+    private boolean pricipalProtectionPreference;
 
-    // 부채 등록 시점 
     @Column(nullable = false)
-    private LocalDateTime createdAt; 
+    private Integer diagnosisScore;
 
+    @Column(nullable = false)
+    private LocalDateTime diagnosedAt;
 }

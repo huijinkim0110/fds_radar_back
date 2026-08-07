@@ -2,6 +2,8 @@ package fds.radar.entity.transaction;
 
 import java.time.LocalDateTime;
 
+import fds.radar.common.BusinessCategory;
+import fds.radar.common.RiskStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,19 +33,9 @@ public class Merchants {
     private String merchantName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "business_type", nullable = false)
-    private BusinessType businessType;
+    @Column(nullable = false)
+    private BusinessCategory businessCategory;
 
-    public enum BusinessType {
-        RESTAURANT,
-        MART,
-        ONLINE_SHOPPING,
-        TRANSPORTATION,
-        MEDICAL,
-        LEISURE,
-        EDUCATION,
-        OTHER_BUSINESS;
-    }
 
     @Column(nullable = false)
     private String countryCode;
@@ -55,14 +47,9 @@ public class Merchants {
     private boolean onlineMerchant;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "risk_status", nullable = false)
+    @Column(nullable = false)
     private RiskStatus riskStatus;
 
-    public enum RiskStatus {
-        NORMAL,
-        CAUTION,
-        SUSPICIOUS;
-    }
 
     @Column(nullable = false)
     private LocalDateTime regDate;

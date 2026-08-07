@@ -1,10 +1,11 @@
-package fds.radar.entity.account;
+package fds.radar.entity.finance;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDateTime;
 
-import fds.radar.common.AccountStatus;
 import fds.radar.entity.user.Users;
-import fds.radar.common.AccountType;
+import fds.radar.common.LiabilityType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,42 +28,46 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Accounts {
-    
+public class Liabilities {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private Long liabilityId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institution_id", nullable = false)
-    private Institutions institution;
-
-    // 계좌번호 (후에 자동 생성 로직으로 변경)
-    @Column(unique = true, nullable = false)
-    private String accountNumber;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountType accountType;
+    private LiabilityType liabilityType;
 
-
+    // 대출 기관명
     @Column(nullable = false)
-    private Long balance;
+    private String lenderName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
-    @Builder.Default
-    private AccountStatus accountStatus = AccountStatus.ACTIVE;
-
+    // 최초 대출 원금
     @Column(nullable = false)
-    private Long dailyTransferLimit;
+    private Long originalAmount;
 
+    // 남은 상환 금액
     @Column(nullable = false)
-    private LocalDateTime openedAt;
+    private Long remainingAmount;
 
-    
+    // 이자율 (총 4자리 중 소수점 아래 2자리, 최대 99.99%)
+    @Column(name = "interest_rate", precision = 4, scale = 2, nullable = false)
+    private BigDecimal interestRate;
+
+    // 월 상환액
+    @Column(nullable = false)
+    private Long monthlyPayment;
+
+    // 만기일
+    @Column(nullable = false)
+    private Date maturityDate;
+
+    // 부채 등록 시점
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
 }

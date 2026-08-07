@@ -15,4 +15,8 @@ public enum FailureReason {
     FailureReason(String description) {
         this.description = description;
     }
+
+    public String getDescription() {
+        return description;
+    }
 }

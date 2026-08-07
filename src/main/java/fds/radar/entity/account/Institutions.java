@@ -5,6 +5,7 @@ package fds.radar.entity.account;
 import java.time.LocalDateTime;
 
 import fds.radar.common.InstitutionStatus;
+import fds.radar.common.InstitutionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,20 +36,13 @@ public class Institutions {
     private String institutionName; 
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "institution_type", nullable = false)
+    @Column(nullable = false)
     private InstitutionType institutionType;
     
-    public enum InstitutionType{
-        BANK,
-        CARD_COMPANY,
-        SECURITIES,
-        INSURANCE,
-        OTHER_INSTITURION;
 
-    }
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
     private InstitutionStatus status = InstitutionStatus.ACTIVE; // 기본값 설정
     
