@@ -7,10 +7,19 @@ import fds.radar.common.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface FinancialProductsRepository extends JpaRepository<FinancialProducts, Long> {
-    // 카테고리별 필터링 + 페이징 (상품 목록 조회 기능용)
-    Page<FinancialProducts> findByProductTypeAndProductStatus(ProductType productType, ProductStatus status, Pageable pageable);
-    Page<FinancialProducts> findByRiskLevelAndProductStatus(RiskLevel riskLevel, ProductStatus status, Pageable pageable);
-    Page<FinancialProducts> findByProductStatus(ProductStatus status, Pageable pageable);
+    // 상품 목록 조회용 - productType/riskLevel은 선택적 필터(null이면 조건 무시)
+    // 판매중(ON_SALE)인 상품만 목록에 노출
+    @Query("SELECT fp FROM FinancialProducts fp " +
+           "WHERE fp.productStatus = :status " + 
+           "AND (:productType IS NULL OR fp.productType = :productType) " + 
+           "AND (:riskLevel IS NULL OR fp.riskLevel = :riskLevel)")
+    Page<FinancialProducts> search(
+        @Param("productType") ProductType productType,
+        @Param("riskLevel") RiskLevel riskLevel,
+        @Param("status") ProductStatus status,
+        Pageable pageable);
 }
