@@ -41,7 +41,7 @@ public class CardService {
 
     // 카드 발급 — User 직속, 금융기관 지정, 만료일 서버 계산
     @Transactional
-    public CardResponse issueCard(Long userId, CardIssueRequest request) {
+    public CardResponse issueCard(Long userId, CardCreateRequest request) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다"));
 
