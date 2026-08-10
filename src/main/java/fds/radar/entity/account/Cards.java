@@ -54,7 +54,7 @@ public class Cards {
     private CardType cardType;
 
     @Column(nullable = false, precision = 19, scale = 4)
-    private BigDecimal creaditLimit;
+    private BigDecimal creditLimit;
 
     @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal availableLimit;

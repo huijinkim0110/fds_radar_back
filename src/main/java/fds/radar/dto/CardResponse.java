@@ -31,7 +31,7 @@ public class CardResponse {
             card.getCardId(),
             card.getUser().getUserId(),
             maskCardNumber(card.getCardNumber()),
-            card.getCreaditLimit(),
+            card.getCreditLimit(),
             card.getAvailableLimit(),
             card.getStatus()
         );
