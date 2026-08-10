@@ -16,7 +16,7 @@ public class CardResponse {
 
     public CardResponse () {}
 
-    public CardResponse(Long id, Long accountId, String CardNumber, BigDecimal creditLimit, 
+    public CardResponse(Long id, Long accountId, String cardNumber, BigDecimal creditLimit, 
                         BigDecimal availableLimit, CardStatus status) {
         this.id = id;
         this.accountId = accountId;

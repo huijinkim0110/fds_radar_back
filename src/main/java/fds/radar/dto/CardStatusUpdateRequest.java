@@ -10,7 +10,7 @@ public class CardStatusUpdateRequest {
 
     public CardStatusUpdateRequest() {}
 
-    public CardStatusUpdateRequest(CardStatus cardStatus) {
+    public CardStatusUpdateRequest(CardStatus status) {
         this.status = status;
     }
 
