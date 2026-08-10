@@ -1,5 +1,6 @@
 package fds.radar.entity.account;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import fds.radar.common.CardStatus;
@@ -52,11 +53,11 @@ public class Cards {
     @Column(name = "card_type", nullable = false)
     private CardType cardType;
 
-    @Column(nullable = false)
-    private Long creaditLimit;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal creaditLimit;
 
-    @Column(nullable = false)
-    private Long availableLimit;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal availableLimit;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "card_status", nullable = false)
