@@ -17,7 +17,7 @@ public interface CardRepository extends JpaRepository<Cards, Long> {
     List<Cards> findByUserId(Long userId);
 
     // 본인 소유 검증 - 타인 카드 id 조회 차단용
-    Optional<Cards> findByIdAndUserId(Long id, Long userId);
+    Optional<Cards> findByIdAndUserId(Long cardId, Long userId);
 
     // 특정 계좌에 딸린 카드들 (계좌 해지 시 카드 정리 확인
     List<Cards> findByAccountId(Long accountId);

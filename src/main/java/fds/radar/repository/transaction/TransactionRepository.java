@@ -13,7 +13,7 @@ import fds.radar.entity.transaction.Transactions;
 public interface TransactionRepository extends JpaRepository<Transactions, Long>{
     
     // 본인 거래 내역만 조회 (거래 상세)
-    Optional<Transactions> findByIdAndUserId(Long id, Long userId);
+    Optional<Transactions> findByIdAndUserId(Long transactionId, Long userId);
 
     // 내 거래내역 - 페이징
     Page<Transactions> findByUserId(Long userId, Pageable pageable);
