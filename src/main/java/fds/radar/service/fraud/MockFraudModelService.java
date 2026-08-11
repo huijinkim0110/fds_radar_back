@@ -4,28 +4,61 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 
+import fds.radar.common.PredictedFraudType;
 import fds.radar.common.PredictedResult;
 
-/**
- * FraudModelService의 임시 구현체.
- * 실제 AutoML 모델이 아직 없어서, 항상 정해진 값만 반환하는 가짜(Mock) 구현.
- *
- * 2~3차에서 이 값을 그대로 써서 "AI 예측 → DB 저장 → 조회" 흐름을 먼저 완성하고,
- * 나중에 진짜 AutoML API가 준비되면 AutoMLFraudModelService를 새로 만들어서
- * @Service 어노테이션만 이쪽에서 저쪽으로 옮기면 교체 끝.
- */
 @Service
 public class MockFraudModelService implements FraudModelService {
 
+    private static final long HIGH_AMOUNT_THRESHOLD = 1_000_000L;
+
     @Override
-    public FraudPrediction predict(Long transactionId) {
-        // TODO 2차: 실제로는 transactionId로 거래정보 조회 → AI 입력값 변환 → 모델 호출
-        // 지금은 항상 "정상" 판정만 반환
+    public FraudPrediction predict(TransactionData transactionData) {
+        BigDecimal probability = new BigDecimal("0.10");
+        StringBuilder reasonBuilder = new StringBuilder();
+        PredictedFraudType fraudType = null;
+
+        boolean isForeign = transactionData.getCountryCode() != null
+                && !"KR".equalsIgnoreCase(transactionData.getCountryCode());
+        boolean isHighAmount = transactionData.getAmount() != null
+                && transactionData.getAmount() >= HIGH_AMOUNT_THRESHOLD;
+        boolean isNewRecipient = transactionData.isNewRecipient();
+
+        if (isForeign) {
+            probability = probability.add(new BigDecimal("0.40"));
+            reasonBuilder.append("해외(").append(transactionData.getCountryCode()).append(") 거래. ");
+            fraudType = PredictedFraudType.STOLEN_CARD;
+        }
+        if (isHighAmount) {
+            probability = probability.add(new BigDecimal("0.30"));
+            reasonBuilder.append("평소 대비 고액 거래(").append(transactionData.getAmount()).append("원). ");
+            if (isForeign) {
+                fraudType = PredictedFraudType.STOLEN_CARD;
+            }
+        }
+        if (isNewRecipient) {
+            probability = probability.add(new BigDecimal("0.20"));
+            reasonBuilder.append("신규 수취계좌로의 거래. ");
+            fraudType = PredictedFraudType.UNUSUAL_TRANSFER;
+        }
+
+        if (probability.compareTo(new BigDecimal("0.99")) > 0) {
+            probability = new BigDecimal("0.99");
+        }
+
+        boolean isAnomaly = probability.compareTo(new BigDecimal("0.70")) >= 0;
+
+        if (!isAnomaly) {
+            reasonBuilder.setLength(0);
+            reasonBuilder.append("Mock 모델 - 정상 패턴 범위 내 거래");
+            fraudType = null;
+        }
+
         return FraudPrediction.builder()
-                .fraudProbability(new BigDecimal("0.10"))
-                .predictedResult(PredictedResult.NORMAL)
-                .fraudType(null)
-                .detectionReason("Mock 모델 - 임시 정상 판정")
+                .fraudProbability(probability)
+                .predictedResult(isAnomaly ? PredictedResult.FRAUD : PredictedResult.NORMAL)
+                .fraudType(fraudType)
+                .detectionReason(reasonBuilder.toString().trim())
                 .userPatternScore(new BigDecimal("0.50"))
                 .build();
     }
