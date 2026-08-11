@@ -48,7 +48,7 @@ public class ProductComparisonsController {
 
     // 비교함에서 상품 삭제
     // DELETE /product-comparisons/items/{comparisonItemId}
-    @DeleteMapping("/items/{comparisonItemId}")
+    @DeleteMapping("/{comparisonId}/items/{comparisonItemId}")
     public ResponseEntity<Void> removeItem(@PathVariable Long comparisonItemId) {
         productComparisonsService.removeItem(comparisonItemId);
         return ResponseEntity.noContent().build();
