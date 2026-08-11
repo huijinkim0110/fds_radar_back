@@ -1,7 +1,6 @@
 package fds.radar.dto;
 
 import fds.radar.common.BusinessCategory;
-import fds.radar.common.RiskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

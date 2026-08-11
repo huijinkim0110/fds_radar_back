@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.fraud;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.account;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.query.Param;
 
 import fds.radar.entity.account.Accounts;
+import fds.radar.entity.user.Users;
 import jakarta.persistence.LockModeType;
 
 public interface AccountRepository extends JpaRepository<Accounts, Long> {
@@ -29,5 +30,7 @@ public interface AccountRepository extends JpaRepository<Accounts, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Accounts a WHERE Id = :id")
     Optional<Accounts> findByIdForUpdate(@Param("id") Long id);
+
+    Optional<Users> findByUser_UserId(Long accountId, Long userId);
 
 }

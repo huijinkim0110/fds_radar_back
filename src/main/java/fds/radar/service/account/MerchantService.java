@@ -1,4 +1,4 @@
-package fds.radar.service;
+package fds.radar.service.account;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +13,7 @@ import fds.radar.dto.MerchantRiskUpdateRequest;
 import fds.radar.entity.transaction.Merchants;
 import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
-import fds.radar.repository.MerchanstRepository;
+import fds.radar.repository.transaction.MerchanstRepository;
 
 @Service
 public class MerchantService {

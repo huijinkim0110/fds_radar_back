@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.account;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +16,7 @@ public interface TransferRepository extends JpaRepository<TransferRecipients, Lo
    Optional<TransferRecipients> findByIdAndUserId(Long id, Long userId);
     
    // 저장 시 중복 방시 - 같은 사람이 같은 은행 + 계좌 중복 저장 안되게
-   boolean existsByUserIdAndInstitution_InstitutionIdAndAccountNumber (
+   boolean existsByUser_UserIdAndInstitution_InstitutionIdAndAccountNumber (
         Long userId, Long institutionId, String accountNumber
    );
 }
