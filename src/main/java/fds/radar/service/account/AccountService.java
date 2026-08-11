@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.AccountStatus;
 import fds.radar.common.AccountType;
-import fds.radar.dto.AccountCreateRequest;
-import fds.radar.dto.AccountLimitUpdateRequest;
-import fds.radar.dto.AccountResponse;
+import fds.radar.dto.account.AccountCreateRequest;
+import fds.radar.dto.account.AccountLimitUpdateRequest;
+import fds.radar.dto.account.AccountResponse;
 import fds.radar.entity.account.Accounts;
 import fds.radar.entity.user.Users;
 import fds.radar.exception.BusinessException;

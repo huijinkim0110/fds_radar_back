@@ -1,4 +1,4 @@
-package fds.radar.dto;
+package fds.radar.dto.account;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

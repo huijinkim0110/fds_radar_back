@@ -1,4 +1,4 @@
-package fds.radar.dto;
+package fds.radar.dto.account;
 
 import java.time.LocalDateTime;
 

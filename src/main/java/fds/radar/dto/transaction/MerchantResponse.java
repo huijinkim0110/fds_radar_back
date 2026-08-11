@@ -1,4 +1,4 @@
-package fds.radar.dto;
+package fds.radar.dto.transaction;
 
 import fds.radar.common.BusinessCategory;
 import fds.radar.common.RiskStatus;

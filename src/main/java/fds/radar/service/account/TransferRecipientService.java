@@ -4,8 +4,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import fds.radar.dto.TransferRecipientResponse;
-import fds.radar.dto.TransferRecipientsCreateRequest;
+import fds.radar.dto.account.TransferRecipientResponse;
+import fds.radar.dto.account.TransferRecipientsCreateRequest;
 import fds.radar.entity.account.Institutions;
 import fds.radar.entity.account.TransferRecipients;
 import fds.radar.entity.user.Users;
