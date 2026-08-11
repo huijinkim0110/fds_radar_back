@@ -13,4 +13,10 @@ public class BusinessException extends RuntimeException {
         this.errorCode = errorCode;
         this.status = status;
     }
+
+    public BusinessException(String message) {
+        super(message);
+        this.errorCode = "BUSINESS_RULE_VIOLATION";
+        this.status = 400;
+    }
 }
