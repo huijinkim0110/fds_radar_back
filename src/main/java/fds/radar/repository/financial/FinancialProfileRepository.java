@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.finance.FinancialProfiles;
 
 public interface FinancialProfileRepository extends JpaRepository<FinancialProfiles, Long> {
-    Optional<FinancialProfiles> findByUserId(Long useeId);
+    Optional<FinancialProfiles> findByUser_UserId(Long userId);
 }
