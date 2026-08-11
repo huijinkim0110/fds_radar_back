@@ -12,19 +12,18 @@ import jakarta.persistence.LockModeType;
 public interface LockRequestRepository extends JpaRepository<LockRequests, Long>{
     
     // 내 잠금 요청 목록
-    List<LockRequests> findByUserId(Long userId);
+    List<LockRequests> findByUser_UserId(Long userId);
 
-    // 본인 요청 상세 (남의 요청 조회 차단)
-    Optional<LockRequests> findByIdAndUserId(Long lockId, Long userId);
+    Optional<LockRequests> findByLockRequestIdAndUser_UserId(Long lockRequestId, Long userId);
 
     // 관리자 처리 대기 목록
-    List<LockRequests> findByRequestStatus(LockRequestStatus status);
+    List<LockRequests> findByRequestStatus(LockRequestStatus requestStatus);
 
-    // 특정 대상(카드/계좌) 처리 안된 요청 확인 - 중복 요청 방지
-    boolean existsByTargetTypeAndTargetIdAndStatus(
-        LockModeType targetType, Long targetId, LockRequestStatus status
-    );
+    // 같은 fraud_case 중복 잠금요청 방지
+    boolean existsByFraudCase_FraudCaseIdAndRequestStatus(
+        Long fraudCaseId, LockRequestStatus requestStatus);
 
-    // fraud_case 연동 - 중복 자동잠금 방지
-    Optional<LockRequests> findByFraudCaseId(Long fraudCaseId);
-}
+    // D 연동 자동잠금 — 이 사건으로 이미 잠금 걸었나
+    Optional<LockRequests> findByFraudCase_FraudCaseId(Long fraudCaseId);
+
+    }

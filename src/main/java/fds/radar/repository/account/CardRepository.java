@@ -17,7 +17,7 @@ public interface CardRepository extends JpaRepository<Cards, Long> {
     List<Cards> findByUserId(Long userId);
 
     // 본인 소유 검증 - 타인 카드 id 조회 차단용
-    Optional<Cards> findByIdAndUserId(Long cardId, Long userId);
+    Optional<Cards> findByCardIdAndUserId(Long cardId, Long userId);
 
     // 특정 계좌에 딸린 카드들 (계좌 해지 시 카드 정리 확인
     List<Cards> findByAccountId(Long accountId);
@@ -29,6 +29,6 @@ public interface CardRepository extends JpaRepository<Cards, Long> {
     // 결제 시 사용가능한도 차감할 때 쓰는 비관적 락 조회 
     // 트랜잭션 안에서만 호출! 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select c from Cards c where Id = :id")
-    Optional<Cards> findByIdForUpdate(@Param("id") Long id);
+    @Query("select c from Cards c where c.cardId = :id")
+    Optional<Cards> findByCardIdForUpdate(@Param("id") Long id);
 }

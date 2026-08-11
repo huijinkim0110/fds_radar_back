@@ -65,7 +65,7 @@ public TransferRecipientResponse save(Long userId, TransferRecipientsCreateReque
     // 내 수취인 목록
     @Transactional(readOnly = true)
     public List<TransferRecipientResponse> getMyRecipients(Long userId) {
-        return recipientRepository.findByUserId(userId).stream()
+        return recipientRepository.findByUser_UserId(userId).stream()
             .map(TransferRecipientResponse::from)
             .toList();
     }
@@ -73,7 +73,7 @@ public TransferRecipientResponse save(Long userId, TransferRecipientsCreateReque
     // 수취인 삭제 - 본인 것만
     @Transactional
     public void delete(Long userId, Long recipientId) {
-        TransferRecipients recipients = recipientRepository.findByIdAndUserId(recipientId, userId)
+        TransferRecipients recipients = recipientRepository.findByTransferIdAndUser_UserId(recipientId, userId)
                 .orElseThrow(() -> new NotFoundException("수취인을 찾을 수 없습니다."));
                 recipientRepository.delete(recipients);
     }

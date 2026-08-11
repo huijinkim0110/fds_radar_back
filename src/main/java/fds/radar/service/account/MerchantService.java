@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.RiskStatus;
-import fds.radar.dto.transaction.MerchantCreateRequest;
-import fds.radar.dto.transaction.MerchantResponse;
-import fds.radar.dto.transaction.MerchantRiskUpdateRequest;
+import fds.radar.dto.MerchantCreateRequest;
+import fds.radar.dto.MerchantResponse;
+import fds.radar.dto.MerchantRiskUpdateRequest;
 import fds.radar.entity.transaction.Merchants;
 import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;

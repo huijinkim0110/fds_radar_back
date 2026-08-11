@@ -28,8 +28,8 @@ public interface AccountRepository extends JpaRepository<Accounts, Long> {
     // 트랜잭션 안에서만 호출해야 락 유지
     // 중복된 계좌번호로 인한 잔액 차감 오류 방지
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Accounts a WHERE Id = :id")
-    Optional<Accounts> findByIdForUpdate(@Param("id") Long id);
+    @Query("SELECT a FROM Accounts a WHERE a.accountId = :id")
+    Optional<Accounts> findByAccountIdForUpdate(@Param("id") Long id);
 
     Optional<Users> findByUser_UserId(Long accountId, Long userId);
 

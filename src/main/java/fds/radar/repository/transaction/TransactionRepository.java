@@ -13,13 +13,13 @@ import fds.radar.entity.transaction.Transactions;
 public interface TransactionRepository extends JpaRepository<Transactions, Long>{
     
     // 본인 거래 내역만 조회 (거래 상세)
-    Optional<Transactions> findByIdAndUserId(Long transactionId, Long userId);
+    Optional<Transactions> findByTransactionIdAndUser_UserId(Long transactionId, Long userId);
 
     // 내 거래내역 - 페이징
-    Page<Transactions> findByUserId(Long userId, Pageable pageable);
+    Page<Transactions> findByUser_UserId(Long userId, Pageable pageable);
 
     // 유형, 기간 필터 
-    Page<Transactions> findByUserIdAndTypeAndCreatedAtBetween (
+    Page<Transactions> findByUser_UserIdAndTypeAndCreatedAtBetween (
         Long userId, TransactionType type,
         LocalDateTime from, LocalDateTime to, Pageable pageable);
 
@@ -27,7 +27,7 @@ public interface TransactionRepository extends JpaRepository<Transactions, Long>
     Optional<Transactions> findByIdemotencyKey (String idempotencyKey);
 
     // isNewRecipient 판정용 - 이체이력 확인
-    boolean existsByUserIdAndTypeAndRecipientAccountNumber(
+    boolean existsByUser_UserIdAndTypeAndRecipientAccountNumber(
         Long userId, TransactionType type, String recipientAccountNumber
     );
 }
