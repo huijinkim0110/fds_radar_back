@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.finance.Liabilities;
 
 public interface LiabilityRepository extends JpaRepository<Liabilities, Long> {
-    List<Liabilities> findByUserId(Long userId);    
+    List<Liabilities> findBy_UserId(Long userId);    
 }
