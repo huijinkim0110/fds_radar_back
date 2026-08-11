@@ -24,19 +24,17 @@ public class MerchantCreateRequest {
 
     private boolean onlineMerchat;
 
-    private RiskStatus riskStatus;
 
     public MerchantCreateRequest() {}
 
     public MerchantCreateRequest(String merchantName, BusinessCategory businessCategory,
-        String countryCode, String region, boolean onlineMerchant, RiskStatus riskStatus
+        String countryCode, String region, boolean onlineMerchant
     ) {
         this.merchantName = merchantName;
         this.businessCategory = businessCategory;
         this.countryCode = countryCode;
         this.region = region;
         this.onlineMerchat = onlineMerchant;
-        this.riskStatus = riskStatus;
     }
 
     public String getMerchantName() {return merchantName;}
@@ -44,5 +42,5 @@ public class MerchantCreateRequest {
     public String getCountryCode() {return countryCode;}
     public String getRegoin() {return region;}
     public boolean isOnlineMerchant() {return onlineMerchat;}
-    public RiskStatus getRiskStatus() {return riskStatus;}
+    
 }
