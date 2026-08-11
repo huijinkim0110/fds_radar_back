@@ -3,6 +3,7 @@ package fds.radar.service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.AccountStatus;
@@ -16,7 +17,7 @@ import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
 import fds.radar.repository.AccountRepository;
 
-
+@Service
 public class AccountService {
     
     private final AccountRepository accountRepository;

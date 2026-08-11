@@ -24,7 +24,7 @@ public interface TransactionRepository extends JpaRepository<Transactions, Long>
         LocalDateTime from, LocalDateTime to, Pageable pageable);
 
     // 중복 결제 방지 
-    Optional<Transactions> findByIddemotencyKey (String idempotencyKey);
+    Optional<Transactions> findByIdemotencyKey (String idempotencyKey);
 
     // isNewRecipient 판정용 - 이체이력 확인
     boolean existsByUserIdAndTypeAndRecipientAccountNumber(

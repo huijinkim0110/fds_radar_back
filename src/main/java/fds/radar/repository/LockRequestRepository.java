@@ -18,7 +18,7 @@ public interface LockRequestRepository extends JpaRepository<LockRequests, Long>
     Optional<LockRequests> findByIdAndUserId(Long id, Long userId);
 
     // 관리자 처리 대기 목록
-    List<LockRequests> findByStatus(LockRequestStatus status);
+    List<LockRequests> findByRequestStatus(LockRequestStatus status);
 
     // 특정 대상(카드/계좌) 처리 안된 요청 확인 - 중복 요청 방지
     boolean existsByTargetTypeAndTargetIdAndStatus(

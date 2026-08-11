@@ -3,6 +3,7 @@ package fds.radar.service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.CardStatus;
@@ -22,6 +23,7 @@ import fds.radar.entity.user.Users;
 import fds.radar.repository.InstitutionRepository;
 import fds.radar.repository.UserRepository;
 
+@Service
 public class CardService {
     
     private final CardRepository cardRepository;

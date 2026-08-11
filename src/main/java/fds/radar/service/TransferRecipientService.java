@@ -2,6 +2,7 @@ package fds.radar.service;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.dto.TransferRecipientResponse;
@@ -13,7 +14,7 @@ import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
 import fds.radar.repository.InstitutionRepository;
 
-
+@Service
 public class TransferRecipientService {
     
     private final TrnasferRecipientRepository recipientRepository;
