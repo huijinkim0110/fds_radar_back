@@ -35,7 +35,7 @@ public class TransferRecipientResponse {
             recipients.getInstitution().getInstitutionId(),
             recipients.getInstitution().getInstitutionName(),
             maskAccountNumber(recipients.getAccountNumber()),
-            !recipients.isRegistered(),
+            recipients.getFirstTransferAt() == null, // 이체 이력 없으면 신규 
             recipients.getLastTransferAt()
         );
     }
