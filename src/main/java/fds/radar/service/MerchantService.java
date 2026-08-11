@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import fds.radar.common.RiskStatus;
 import fds.radar.dto.MerchantCreateRequest;
 import fds.radar.dto.MerchantResponse;
+import fds.radar.dto.MerchantRiskUpdateRequest;
 import fds.radar.entity.transaction.Merchants;
 import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
@@ -55,12 +56,19 @@ public class MerchantService {
         return MerchantResponse.from(findById(merchantId));
     }
 
-    private Merchants findById(Long merchantId) {
+
+    // 위험상태 변경 (ADMIN)
+    @Transactional
+    public MerchantResponse updateRisk(Long merchantId, MerchantRiskUpdateRequest request) {
+        Merchants merchants = findById(merchantId);
+        merchants.setRiskStatus(request.getRiskStatus());
+        return MerchantResponse.from(merchants);
+    }
+
+     private Merchants findById(Long merchantId) {
         return merchanstRepository.findById(merchantId)
             .orElseThrow(() -> new NotFoundException("가맹점을 찾을 수 없습니다."));
 
     }
-
-    
 
 }
