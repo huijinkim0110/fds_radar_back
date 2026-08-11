@@ -13,6 +13,7 @@ import fds.radar.entity.user.Users;
 import fds.radar.repository.financialProduct.FavoriteProductsRepository;
 import fds.radar.repository.financialProduct.FinancialProductsRepository;
 import fds.radar.repository.user.UserRepository;
+import fds.radar.mapper.FinancialProductMapper;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -63,7 +64,7 @@ public class FavoriteProductsService {
         List<FavoriteProducts> favorites = favoriteProductsRepository.findByUser_UserId(userId);
 
         return favorites.stream()
-                        .map(fav -> toListDTO(fav.getProduct()))
+                        .map(fav -> FinancialProductMapper.toListDTO(fav.getProduct()))
                         .toList();
     }
 
@@ -71,18 +72,6 @@ public class FavoriteProductsService {
     @Transactional(readOnly=true)
     public boolean isFavorite(Long userId, Long productId) {
         return favoriteProductsRepository.existsByUser_UserIdAndProduct_ProductId(userId, productId);
-    }
-
-    private ProductListResponseDTO toListDTO(FinancialProducts p) {
-        return ProductListResponseDTO.builder()
-                                     .productId(p.getProductId())
-                                     .productName(p.getProductName())
-                                     .institutionName(p.getInstitution().getInstitutionName())
-                                     .productType(p.getProductType())
-                                     .riskLevel(p.getRiskLevel())
-                                     .expectedReturnRate(p.getExpectedReturnRate())
-                                     .principalProtection(p.isPrincipalProtection())
-                                     .build();
     }
 
 }

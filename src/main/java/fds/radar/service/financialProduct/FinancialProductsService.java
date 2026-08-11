@@ -11,6 +11,7 @@ import fds.radar.common.RiskLevel;
 import fds.radar.dto.financialProduct.ProductDetailResponseDTO;
 import fds.radar.dto.financialProduct.ProductListResponseDTO;
 import fds.radar.entity.financialProduct.FinancialProducts;
+import fds.radar.mapper.FinancialProductMapper;
 import fds.radar.repository.financialProduct.FinancialProductsRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,7 @@ public class FinancialProductsService {
         Page<FinancialProducts> products = financialProductsRepository
                                            .search(productType, riskLevel, ProductStatus.ON_SALE, pageable);
 
-        return products.map(this::toListDTO);
+        return products.map(FinancialProductMapper::toListDTO);
     }
 
     // 상품 상세 조회(비로그인 사용자도 접근 가능)
@@ -37,18 +38,6 @@ public class FinancialProductsService {
                                                                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
         return toDetailDTO(product);
-    }
-
-    private ProductListResponseDTO toListDTO(FinancialProducts p) {
-        return ProductListResponseDTO.builder()
-                                     .productId(p.getProductId())
-                                     .productName(p.getProductName())
-                                     .institutionName(p.getInstitution().getInstitutionName())
-                                     .productType(p.getProductType())
-                                     .riskLevel(p.getRiskLevel())
-                                     .expectedReturnRate(p.getExpectedReturnRate())
-                                     .principalProtection(p.isPrincipalProtection())
-                                     .build();
     }
 
     private ProductDetailResponseDTO toDetailDTO(FinancialProducts p) {
