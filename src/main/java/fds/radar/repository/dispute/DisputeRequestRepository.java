@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.dispute.DisputeRequests;
 
 public interface DisputeRequestRepository extends JpaRepository<DisputeRequests, Long> {
-    List<DisputeRequests> findByUserId(Long userId);
+    List<DisputeRequests> findByUser_UserId(Long userId);
     List<DisputeRequests> findByFraudReportId(Long fraudReportId);
 }
