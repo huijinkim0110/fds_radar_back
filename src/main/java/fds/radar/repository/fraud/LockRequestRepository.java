@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import fds.radar.common.LockRequestStatus;
 import fds.radar.entity.dispute.LockRequests;
-import jakarta.persistence.LockModeType;
+
 
 public interface LockRequestRepository extends JpaRepository<LockRequests, Long>{
     
