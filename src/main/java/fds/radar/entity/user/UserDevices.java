@@ -50,4 +50,5 @@ public class UserDevices {
     private LocalDateTime lastloginAt;
     private LocalDateTime registeredAt;
 
+  
 }
