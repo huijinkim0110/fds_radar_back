@@ -99,7 +99,7 @@ public class FraudCaseService {
         List<FraudCases> cases = fraudCaseRepository.findAll();
 
         return cases.stream()
-                .map(this::toListResponse)
+                .map(this::toListResponse) // 각각을 DTO로 변환
                 .toList();  
     }
     
