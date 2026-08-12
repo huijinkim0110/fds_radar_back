@@ -96,12 +96,56 @@ public class FraudCaseService {
 
     // 5차: 관리자 사건 목록 조회
     public List<FraudCaseListResponse> getCaseList() {
-        throw new UnsupportedOperationException("5차에서 구현 예정");
+        List<FraudCases> cases = fraudCaseRepository.findAll();
+
+        return cases.stream()
+                .map(this::toListResponse)
+                .toList();  
+    }
+    
+    private FraudCaseListResponse toListResponse(FraudCases fraudCase) {
+        return FraudCaseListResponse.builder()
+            .fraudCaseId(fraudCase.getFraudCaseId())
+            .transactionId(fraudCase.getTransaction().getTransactionId())
+            .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
+            .priority(fraudCase.getPriority())
+            .caseStatus(fraudCase.getCaseStatus())
+            .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
+            .openedAt(fraudCase.getOpenedAt())
+            .build();
     }
 
     // 5차: 관리자 사건 상세 조회 (거래정보 + AI탐지결과 + 사건정보 + 사용자확인결과 조합)
     public FraudCaseDetailResponse getCaseDetail(Long fraudCaseId) {
-        throw new UnsupportedOperationException("5차에서 구현 예정");
+    FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+
+    return toDetailResponse(fraudCase); 
+    }
+
+    private FraudCaseDetailResponse toDetailResponse(FraudCases fraudCase) {
+    FraudDetectionResults detectionResult = fraudCase.getDetectionResult();
+
+    FraudCaseDetailResponse.DetectionSummary detection = FraudCaseDetailResponse.DetectionSummary.builder()
+            .detectionResultId(detectionResult.getDetectionResultId())
+            .fraudProbability(detectionResult.getFraudProbability())
+            .predictedResult(detectionResult.getPredictedResult())
+            .fraudType(detectionResult.getFraudType())
+            .detectionReason(detectionResult.getDetectionReason())
+            .build();
+
+    return FraudCaseDetailResponse.builder()
+            .fraudCaseId(fraudCase.getFraudCaseId())
+            .caseStatus(fraudCase.getCaseStatus())
+            .priority(fraudCase.getPriority())
+            .confirmation(fraudCase.getConfirmation())
+            .fraudDecision(fraudCase.getFraudDecision())
+            .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
+            .openedAt(fraudCase.getOpenedAt())
+            .closedAt(fraudCase.getClosedAt())
+            .transactionId(fraudCase.getTransaction().getTransactionId())
+            .detection(detection)
+            .build();
     }
 
     // 6차: 사건 상태 변경 (RECEIVED → INVESTIGATING → CLOSED)
