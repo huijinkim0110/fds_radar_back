@@ -10,7 +10,7 @@ import fds.radar.entity.transaction.Transactions;
 
 public class TransactionResponse {
 
-    private Long id;
+    private Long transactionId;
     private TransactionType transactionType;
     private BigDecimal amount;
     private TransactionChannel channel;
@@ -20,10 +20,10 @@ public class TransactionResponse {
 
     public TransactionResponse() {}
 
-    public TransactionResponse(Long id, TransactionType transactionType, BigDecimal amount,
+    public TransactionResponse(Long transactionId, TransactionType transactionType, BigDecimal amount,
                                TransactionChannel channel, TransactionStatus status,
                                LocalDateTime occurredAt, LocalDateTime approvedAt) {
-        this.id = id;
+        this.transactionId = transactionId;
         this.transactionType = transactionType;
         this.amount = amount;
         this.channel = channel;
@@ -44,7 +44,7 @@ public class TransactionResponse {
         );
     }
 
-    public Long getId() { return id; }
+    public Long gettransactionId() { return transactionId; }
     public TransactionType getTransactionType() { return transactionType; }
     public BigDecimal getAmount() { return amount; }
     public TransactionChannel getChannel() { return channel; }
