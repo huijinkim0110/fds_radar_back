@@ -56,7 +56,7 @@ public class InvestmentProfiles {
     private PreferredPeriod preferredPeriod;
 
     @Column(nullable = false)
-    private boolean pricipalProtectionPreference;
+    private boolean principalProtectionPreference;
 
     @Column(nullable = false)
     private Integer diagnosisScore;
