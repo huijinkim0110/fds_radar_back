@@ -1,23 +1,24 @@
-package fds.radar.service;
+package fds.radar.service.account;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.AccountStatus;
 import fds.radar.common.AccountType;
-import fds.radar.dto.AccountCreateRequest;
-import fds.radar.dto.AccountLimitUpdateRequest;
-import fds.radar.dto.AccountResponse;
+import fds.radar.dto.account.AccountCreateRequest;
+import fds.radar.dto.account.AccountLimitUpdateRequest;
+import fds.radar.dto.account.AccountResponse;
 import fds.radar.entity.account.Accounts;
 import fds.radar.entity.user.Users;
 import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
-import fds.radar.repository.AccountRepository;
+import fds.radar.repository.account.AccountRepository;
 import fds.radar.repository.user.UserRepository;
 
-
+@Service
 public class AccountService {
     
     private final AccountRepository accountRepository;

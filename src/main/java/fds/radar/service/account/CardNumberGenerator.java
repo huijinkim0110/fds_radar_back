@@ -1,8 +1,8 @@
-package fds.radar.service;
+package fds.radar.service.account;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import fds.radar.repository.CardRepository;
+import fds.radar.repository.account.CardRepository;
 
 public class CardNumberGenerator {
     

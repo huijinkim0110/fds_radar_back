@@ -1,19 +1,23 @@
-package fds.radar.service;
+package fds.radar.service.account;
 
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.CardStatus;
-import fds.radar.dto.CardCreateRequest;
-import fds.radar.dto.CardResponse;
+import fds.radar.dto.account.CardCreateRequest;
+import fds.radar.dto.account.CardResponse;
 import fds.radar.entity.account.Cards;
-import fds.radar.exception.NotFoundException;
-import fds.radar.repository.CardRepository;
-import java.time.LocalDateTime;
 import fds.radar.entity.account.Institutions;
 import fds.radar.entity.user.Users;
-import fds.radar.repository.InstitutionRepository;
+import fds.radar.exception.NotFoundException;
+import fds.radar.repository.account.CardRepository;
+import fds.radar.repository.account.InstitutionRepository;
 import fds.radar.repository.user.UserRepository;
 
+
+@Service
 public class CardService {
     
     private final CardRepository cardRepository;

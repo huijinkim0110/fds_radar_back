@@ -1,11 +1,11 @@
-package fds.radar.repository;
+package fds.radar.repository.account;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import fds.radar.entity.account.Accounts;

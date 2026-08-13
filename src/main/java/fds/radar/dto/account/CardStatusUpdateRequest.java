@@ -1,4 +1,4 @@
-package fds.radar.dto;
+package fds.radar.dto.account;
 
 import fds.radar.common.CardStatus;
 import jakarta.validation.constraints.NotNull;

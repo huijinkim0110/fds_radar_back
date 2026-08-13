@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.account;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,9 +1,12 @@
-package fds.radar.service;
+package fds.radar.service.account;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import fds.radar.repository.AccountRepository;
+import org.springframework.stereotype.Service;
 
+import fds.radar.repository.account.AccountRepository;
+
+@Service
 public class AccountNumberGenerator {
     
     private final AccountRepository accountRepository;

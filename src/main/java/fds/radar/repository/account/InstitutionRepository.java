@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.account;
 
 import fds.radar.entity.account.Institutions;
 import org.springframework.data.jpa.repository.JpaRepository;

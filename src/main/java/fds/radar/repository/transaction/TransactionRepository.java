@@ -1,4 +1,4 @@
-package fds.radar.repository;
+package fds.radar.repository.transaction;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -13,7 +13,7 @@ import fds.radar.entity.transaction.Transactions;
 public interface TransactionRepository extends JpaRepository<Transactions, Long>{
     
     // 본인 거래 내역만 조회 (거래 상세)
-    Optional<Transactions> findByTransactionIdAndUser_UserId(Long TransactionId, Long userId);
+    Optional<Transactions> findByTransactionIdAndUser_UserId(Long transactionId, Long userId);
 
     // 내 거래내역 - 페이징
     Page<Transactions> findByUser_UserId(Long userId, Pageable pageable);

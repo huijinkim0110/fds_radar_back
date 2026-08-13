@@ -1,4 +1,4 @@
-package fds.radar.dto;
+package fds.radar.dto.account;
 
 import java.math.BigDecimal;
 
@@ -47,6 +47,6 @@ public class AccountResponse {
     public String getAccountName() {return accountName;}
     public String getAccountNumber() {return accountNumber;}
     public BigDecimal getBalance() {return balance;}
-    public BigDecimal getDailyTransgerLimit() {return dailyTransferLimit;}
+    public BigDecimal getDailyTransferLimit() {return dailyTransferLimit;}
     public AccountStatus getStatus() {return status;}
 }
