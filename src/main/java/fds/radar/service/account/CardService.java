@@ -2,7 +2,6 @@ package fds.radar.service.account;
 
 import java.time.LocalDateTime;
 
-import javax.smartcardio.Card;
 
 import org.springframework.stereotype.Service;
 
