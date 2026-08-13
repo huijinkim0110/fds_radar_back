@@ -2,7 +2,9 @@ package fds.radar.service.recommendation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -43,10 +45,13 @@ public class UnifiedRecommendationService {
         // 3. 예적금 규칙기반 추천
         allResults.addAll(ruleBasedRecommendationService.recommendDepositsAndSavings(profile.getRiskTendency()));
 
-        // 점수 내림차순 정렬
-        allResults.sort(Comparator.comparing(RecommendedProductDTO::getScore).reversed());
+        // 4. 중복 상품 제거(같은 productId면 점수 높은 것만 남김)
+        List<RecommendedProductDTO> deduplicated = deduplicateByProductId(allResults);
 
-        return allResults;
+        // 5. 점수 내림차순 정렬
+        deduplicated.sort(Comparator.comparing(RecommendedProductDTO::getScore).reversed());
+
+        return deduplicated;
 
     }
 
@@ -72,5 +77,22 @@ public class UnifiedRecommendationService {
         }
 
         return mapped;
+    }
+
+    // 같은 productId가 여러 소스에서 중복 추천된 경우, 가장 높은 점수 하나만 남김
+    // - LinkedHashMap을 써서 처음 만난 순서를 최대한 유지하면서 점수 비교
+    private List<RecommendedProductDTO> deduplicateByProductId(List<RecommendedProductDTO> results) {
+        Map<Long, RecommendedProductDTO> uniqueByProductId = new LinkedHashMap<>();
+
+        for (RecommendedProductDTO item : results) {
+            RecommendedProductDTO existing = uniqueByProductId.get(item.getProductId());
+
+            // 처음 만난 상품이거나, 지금 점수가 기존보다 높으면 갱신
+            if (existing == null || item.getScore() > existing.getScore()) {
+                uniqueByProductId.put(item.getProductId(), item);
+            }
+        }
+
+        return new ArrayList<>(uniqueByProductId.values());
     }
 }
