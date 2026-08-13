@@ -42,6 +42,28 @@ public class AiRecommendationService {
                          .body(AiRecommendationResponseDTO.class);
     }
 
+    // FastAPI 보험 추천 서버 호출
+    public AiRecommendationResponseDTO getInsuranceRecommendation(RecommendationRequestDTO dto) {
+        InvestmentProfiles profile = investmentProfileService.getLatestProfile(dto.getUserId());
+
+        AiSecuritiesRequestDTO aiRequest = AiSecuritiesRequestDTO.builder()
+                                                                 .age(dto.getAge())
+                                                                 .gender(dto.getGender())
+                                                                 .region(dto.getRegion())
+                                                                 .income_bracket(dto.getIncomeBracket())
+                                                                 .occupation_group(dto.getOccupationGroup())
+                                                                 .marital_status(dto.getMaritalStatus())
+                                                                 .investment_propensity(mapRiskTendency(profile.getRiskTendency()))
+                                                                 .build();
+
+        return restClient.post()
+                         .uri("/recommend/insurance")
+                         .contentType(MediaType.APPLICATION_JSON)
+                         .body(aiRequest)
+                         .retrieve()
+                         .body(AiRecommendationResponseDTO.class);
+    }
+
     private String mapRiskTendency(RiskTendency tendency) {
         return switch (tendency) {
             case STABLE -> "안정형";

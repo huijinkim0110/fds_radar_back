@@ -4,6 +4,11 @@ import fds.radar.entity.financialProduct.FinancialProducts;
 import fds.radar.common.ProductType;
 import fds.radar.common.RiskLevel;
 import fds.radar.common.ProductStatus;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +27,12 @@ public interface FinancialProductsRepository extends JpaRepository<FinancialProd
         @Param("riskLevel") RiskLevel riskLevel,
         @Param("status") ProductStatus status,
         Pageable pageable);
+
+    // 여러 상품 유형 + 여러 위험등급 동시에 필터링해서 조회
+    List<FinancialProducts> findByProductTypeAndRiskLevelIn(
+        List<ProductType> productTypes, Set<RiskLevel> riskLevels);
+
+    // 상품 이름으로 검색
+    Optional<FinancialProducts> findByProductName(String productName);
+        
 }
