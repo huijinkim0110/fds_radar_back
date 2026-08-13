@@ -8,5 +8,5 @@ import fds.radar.entity.dispute.DisputeRequests;
 
 public interface DisputeRequestRepository extends JpaRepository<DisputeRequests, Long> {
     List<DisputeRequests> findByUser_UserId(Long userId);
-    List<DisputeRequests> findByFraudReportId(Long fraudReportId);
+    List<DisputeRequests> findByFraudReport_FraudReportId(Long fraudReportId);
 }

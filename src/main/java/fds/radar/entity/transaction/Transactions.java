@@ -1,5 +1,6 @@
 package fds.radar.entity.transaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
@@ -41,7 +42,7 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users users;
+    private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = true)
@@ -64,7 +65,7 @@ public class Transactions {
     private TransactionType transactionType;
 
     @Column(name = "amount", nullable = false)
-    private Long amount; // 원 단위 거래 금액
+    private BigDecimal amount; // 원 단위 거래 금액
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -87,6 +88,9 @@ public class Transactions {
     @Column(nullable = false)
     private LocalDateTime occurredAt; // 거래 발생 시점
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime approvedAt; // 거래 승인 시점
+
+    @Column(unique = true)
+    private String idempotencyKey;  
 }

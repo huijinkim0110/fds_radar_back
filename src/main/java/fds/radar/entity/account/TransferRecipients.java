@@ -58,11 +58,11 @@ public class TransferRecipients {
     }
 
     // 최초 송금 시점
-    @Column(nullable = false)
+    @Column
     private LocalDateTime firstTransferAt;
 
     // 최근 송금 시점
-    @Column(nullable = false)
+    @Column
     private LocalDateTime lastTransferAt;
 
 }

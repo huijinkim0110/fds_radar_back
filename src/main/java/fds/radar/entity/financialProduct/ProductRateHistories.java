@@ -38,6 +38,6 @@ public class ProductRateHistories {
     private BigDecimal expectedReturnRate;
 
     private LocalDateTime effectiveStartDate;
-    private LocalDateTime efectiveEndDate;
+    private LocalDateTime effectiveEndDate;
     private LocalDateTime createdAt;
 }

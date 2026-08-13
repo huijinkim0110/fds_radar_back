@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.finance.Assets;
 
 public interface AssetRepository extends JpaRepository<Assets, Long> {
-    List<Assets> findByUsers_UserId(Long userId);
+    List<Assets> findByUser_UserId(Long userId);
 }
