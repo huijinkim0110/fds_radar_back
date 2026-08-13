@@ -29,7 +29,7 @@ public interface FinancialProductsRepository extends JpaRepository<FinancialProd
         Pageable pageable);
 
     // 여러 상품 유형 + 여러 위험등급 동시에 필터링해서 조회
-    List<FinancialProducts> findByProductTypeAndRiskLevelIn(
+    List<FinancialProducts> findByProductTypeInAndRiskLevelIn(
         List<ProductType> productTypes, Set<RiskLevel> riskLevels);
 
     // 상품 이름으로 검색

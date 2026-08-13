@@ -36,7 +36,7 @@ public class RuleBasedRecommendationService {
         Set<RiskLevel> allowedLevels = RISK_TENDENCY_MAP.get(riskTendency);
 
         List<FinancialProducts> candidates = financialProductsRepository
-            .findByProductTypeAndRiskLevelIn(List.of(ProductType.DEPOSIT, ProductType.SAVINGS),
+            .findByProductTypeInAndRiskLevelIn(List.of(ProductType.DEPOSIT, ProductType.SAVINGS),
                                              allowedLevels);
 
         // 예상수익률(금리) 내림차순 정렬
