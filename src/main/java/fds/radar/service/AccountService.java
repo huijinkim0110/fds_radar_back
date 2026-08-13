@@ -53,7 +53,7 @@ public class AccountService {
   // 내 계좌 목록
   @Transactional(readOnly = true)
   public List<AccountResponse> getMyAccounts(Long userId) {
-    return accountRepository.findByUserId(userId).stream()
+    return accountRepository.findByUser_UserId(userId).stream()
             .map(AccountResponse::from)
             .toList();
     }
@@ -88,7 +88,7 @@ public class AccountService {
 
     // 본인 소유 검증 공통 - 없거나 남의 계좌면 예외
     private Accounts findOwned(Long userId, Long accountId) {
-        return accountRepository.findByIdAndUserId(accountId, userId)
+        return accountRepository.findByAccountIdAndUser_UserId(accountId, userId)
                 .orElseThrow(() -> new NotFoundException("계좌를 찾을 수 없습니다."));
 
     }

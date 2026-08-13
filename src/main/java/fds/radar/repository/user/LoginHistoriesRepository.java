@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.user.LoginHistories;
 
 public interface LoginHistoriesRepository extends JpaRepository<LoginHistories, Long> {
-    List<LoginHistories> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<LoginHistories> findByUser_UserIdOrderByCreatedAtDesc(Long userId);
     
 }
                                                    
