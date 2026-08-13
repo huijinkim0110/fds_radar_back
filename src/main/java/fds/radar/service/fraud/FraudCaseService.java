@@ -60,7 +60,7 @@ public class FraudCaseService {
         CasePriority priority = calculatePriority(detectionResult.getFraudProbability());
 
         FraudCases fraudCase = FraudCases.builder()
-                .user(detectionResult.getTransaction().getUsers())
+                .user(detectionResult.getTransaction().getUser())
                 .transaction(detectionResult.getTransaction())
                 .detectionResult(detectionResult)
                 .caseStatus(CaseStatus.RECEIVED)

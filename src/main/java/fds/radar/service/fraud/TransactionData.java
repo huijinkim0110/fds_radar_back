@@ -1,5 +1,6 @@
 package fds.radar.service.fraud;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import fds.radar.common.TransactionChannel;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TransactionData {
     private Long transactionId;
-    private Long amount;
+    private BigDecimal amount;
     private LocalDateTime occurredAt;
     private TransactionType transactionType;
     private TransactionChannel transactionChannel;

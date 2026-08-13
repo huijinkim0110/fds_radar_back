@@ -10,7 +10,7 @@ import fds.radar.common.PredictedResult;
 @Service
 public class MockFraudModelService implements FraudModelService {
 
-    private static final long HIGH_AMOUNT_THRESHOLD = 1_000_000L;
+    private static final BigDecimal HIGH_AMOUNT_THRESHOLD = new BigDecimal("1000000");
 
     @Override
     public FraudPrediction predict(TransactionData transactionData) {
@@ -21,7 +21,7 @@ public class MockFraudModelService implements FraudModelService {
         boolean isForeign = transactionData.getCountryCode() != null
                 && !"KR".equalsIgnoreCase(transactionData.getCountryCode());
         boolean isHighAmount = transactionData.getAmount() != null
-                && transactionData.getAmount() >= HIGH_AMOUNT_THRESHOLD;
+                && transactionData.getAmount().compareTo(HIGH_AMOUNT_THRESHOLD) >= 0;
         boolean isNewRecipient = transactionData.isNewRecipient();
 
         if (isForeign) {
