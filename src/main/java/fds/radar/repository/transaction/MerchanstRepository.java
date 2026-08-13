@@ -12,11 +12,10 @@ import fds.radar.common.RiskStatus;
 public interface MerchanstRepository extends JpaRepository<Merchants, Long>{
 
     // 등록 시 중복 확인
-    boolean existsByMerchantName(String name);
+    boolean existsByMerchantName(String merchantName);
     Optional<Merchants> findByMerchantName(String name);
 
     // 위험 상태 별 조회 (의심, 차단 가맹점 관리, 모니터링용)
     List<Merchants> findByRiskStatus(RiskStatus riskStatus);
-    boolean existsByMerchantName(String merchantName);
     
 }
