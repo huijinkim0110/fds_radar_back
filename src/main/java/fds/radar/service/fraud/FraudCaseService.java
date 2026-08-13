@@ -11,6 +11,7 @@ import fds.radar.common.CasePriority;
 import fds.radar.common.CaseStatus;
 import fds.radar.common.FraudActionType;
 import fds.radar.common.UserConfirmation;
+import fds.radar.common.UserRole;
 import fds.radar.dto.fraud.FraudCaseAssignRequest;
 import fds.radar.dto.fraud.FraudCaseDetailResponse;
 import fds.radar.dto.fraud.FraudCaseListResponse;
@@ -21,6 +22,7 @@ import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.fraud.FraudCaseRepository;
+import fds.radar.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,6 +35,7 @@ public class FraudCaseService {
 
     private final FraudCaseRepository fraudCaseRepository;
     private final FraudCaseHistoryService fraudCaseHistoryService;
+    private final UserRepository userRepository;
 
     // TODO: FraudCases.assignedAdminId, FraudCaseHistories.adminId가 둘 다 nullable=false라
     // 자동생성 시점엔 실제 담당자가 없으므로 임시로 SYSTEM 계정(userId=1)을 사용.
@@ -150,17 +153,97 @@ public class FraudCaseService {
 
     // 6차: 사건 상태 변경 (RECEIVED → INVESTIGATING → CLOSED)
     public void updateCaseStatus(Long fraudCaseId, FraudCaseStatusRequest request) {
-        throw new UnsupportedOperationException("6차에서 구현 예정");
+        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+    
+    CaseStatus oldStatus = fraudCase.getCaseStatus();
+    CaseStatus newStatus = request.getCaseStatus(); 
+    
+    validateStatusTransition(oldStatus, newStatus);
+
+    fraudCase.setCaseStatus(newStatus);
+    fraudCaseRepository.save(fraudCase);
+
+    // TODO(로그인 기능 붙으면 수정): 지금은 "로그인한 관리자가 누구인지" 알 방법이 없어서
+    // 임시로 사건에 배정된 담당자(assignedAdminId)를 이력 행위자로 기록함.
+    // 나중에 SecurityConfig에 JWT 인증 필터 붙고 SecurityContextHolder에서
+    // 실제 로그인한 관리자 id를 꺼낼 수 있게 되면 아래 한 줄만 교체하면 됨:
+    //   Long actingAdminId = SecurityContextHolder.getContext().getAuthentication()... (실제 로그인 관리자 id) 
+    Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
+
+    fraudCaseHistoryService.record(
+            fraudCase,
+            FraudActionType.INVESTIGATE,
+            oldStatus,
+            newStatus,
+            "사건 상태 변경: " + oldStatus + " → " + newStatus,
+            actingAdminId
+        );
+    }
+
+    // 접수→조사중, 조사중→종결 순서만 허용 (역행/건너뛰기 차단) (from=oldStatus, to=newStatus)
+    private void validateStatusTransition(CaseStatus from, CaseStatus to) {
+        if (from == to) {
+            throw new IllegalStateException("이미 " + from + "상태입니다.");
+        }
+        boolean valid = (from == CaseStatus.RECEIVED && to == CaseStatus.INVESTIGATING) ||
+                        (from == CaseStatus.INVESTIGATING && to == CaseStatus.CLOSED);
+        if (!valid) {
+            throw new IllegalStateException("허용되지 않는 상태 변경입니다. " + from + " → " + to);
+        }
     }
 
     // 6차: 담당 관리자 배정
     public void assignAdmin(Long fraudCaseId, FraudCaseAssignRequest request) {
-        throw new UnsupportedOperationException("6차에서 구현 예정");
+        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+            
+        Users newAdmin = userRepository.findById(request.getAdminId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다. id=" + request.getAdminId()));
+
+        if (newAdmin.getRole() != UserRole.ADMIN) {
+            throw new IllegalStateException("ADMIN 권한이 없는 사용자는 담당자로 배정할 수 없습니다. id=" + request.getAdminId());
+        }
+
+        Users previousAdmin = fraudCase.getAssignedAdminId();
+
+        fraudCase.setAssignedAdminId(newAdmin);
+        fraudCaseRepository.save(fraudCase);
+
+        // TODO(로그인 기능 붙으면 수정): 배정 "행위자"도 원래는 로그인한 관리자여야 하지만,
+        // 지금은 로그인 정보가 없어 새로 배정된 관리자 본인을 행위자로 기록.
+        fraudCaseHistoryService.record(
+            fraudCase,
+            FraudActionType.INVESTIGATE,
+            fraudCase.getCaseStatus(),
+            fraudCase.getCaseStatus(),
+            "담당자 변경: " + previousAdmin.getUserId() + " → " + newAdmin.getUserId(),
+            newAdmin.getUserId()
+        );
     }
 
     // 6차: 사용자 본인거래 확인결과 반영
     public void updateConfirmation(Long fraudCaseId, FraudConfirmationRequest request) {
-        throw new UnsupportedOperationException("6차에서 구현 예정");
+        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+    
+        UserConfirmation confirmation = request.getConfirmation();
+
+        fraudCase.setConfirmation(confirmation);
+        fraudCaseRepository.save(fraudCase);
+
+         // 본인거래 확인은 관리자가 아니라 사건 당사자(user)가 하는 행동이라
+        // 이력의 행위자도 관리자가 아닌 그 사건의 user로 기록.
+        Long actingUserId = fraudCase.getUser().getUserId();
+
+        fraudCaseHistoryService.record(
+            fraudCase,
+            FraudActionType.CONFIRMED,
+            fraudCase.getCaseStatus(),
+            fraudCase.getCaseStatus(),
+            "사용자 본인거래 확인결과 변경: " + confirmation,
+            actingUserId
+        );
     }
 
     // 9차: 최종 판정(정상/사기) + 사건 종결 처리
