@@ -42,7 +42,11 @@ public class Cards {
     @JoinColumn(name = "institution_id", nullable = false)
     private Institutions institution;
 
-    // 카드 번소 -> UI 표시할 때 마스킹 패턴 표시
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="account_id", nullable=false)
+    private Accounts account;
+
+    // 카드 번호 -> UI 표시할 때 마스킹 패턴 표시
     @Column(nullable = false)
     private String cardNumber; 
 

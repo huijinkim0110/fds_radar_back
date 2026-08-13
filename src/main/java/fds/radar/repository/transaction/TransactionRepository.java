@@ -19,7 +19,7 @@ public interface TransactionRepository extends JpaRepository<Transactions, Long>
     Page<Transactions> findByUser_UserId(Long userId, Pageable pageable);
 
     // 유형, 기간 필터 
-    Page<Transactions> findByUser_UserIdAndTransactionTypeAndCreatedAtBetween (
+    Page<Transactions> findByUser_UserIdAndTransactionTypeAndOccurredAtBetween (
         Long userId, TransactionType type,
         LocalDateTime from, LocalDateTime to, Pageable pageable);
 
