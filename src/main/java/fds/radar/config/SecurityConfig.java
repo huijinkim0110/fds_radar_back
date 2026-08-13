@@ -20,8 +20,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable()) // REST API면 보통 비활성화
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             );
         return http.build();
     }

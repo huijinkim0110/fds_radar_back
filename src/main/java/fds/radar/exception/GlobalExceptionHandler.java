@@ -33,9 +33,10 @@ public class GlobalExceptionHandler {
     // 그 외 예상 못한 모든 예외 -> 500, 상세 내용은 숨기고 일반 메세지만
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnknown(Exception e) {
+        e.printStackTrace();
         ErrorResponse body = ErrorResponse.builder()
                                           .errorCode("INTERNAL_ERROR")
-                                          .message("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+                                          .message(e.getClass().getSimpleName() + ": " + e.getMessage())
                                           .build();
 
         return ResponseEntity.internalServerError().body(body);
