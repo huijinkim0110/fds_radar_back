@@ -2,6 +2,10 @@ package fds.radar.controller.fraud;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -33,10 +37,12 @@ public class FraudCaseAdminController {
     private final FraudCaseService fraudCaseService;
     private final FraudCaseHistoryService fraudCaseHistoryService;
 
-    // 5차: 관리자 사건 목록 조회
+    // 5차: 관리자 사건 목록 조회(페이징)
+    // 기본값: 페이지당 20건, 접수일시(openedAt) 최신순. 클라이언트가 ?page=1&size=50&sort=priority,desc 처럼 넘기면 그대로 반영됨.
     @GetMapping
-    public ResponseEntity<List<FraudCaseListResponse>> getCaseList() {
-        return ResponseEntity.ok(fraudCaseService.getCaseList());
+    public ResponseEntity<Page<FraudCaseListResponse>> getCaseList(
+            @PageableDefault(size = 20, sort = "openedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(fraudCaseService.getCaseList(pageable));
     }
 
     // 5차: 관리자 사건 상세 조회

@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import fds.radar.common.CasePriority;
@@ -60,6 +63,14 @@ public class FraudCaseService {
             return Optional.empty();
         }
 
+        Long transactionId = detectionResult.getTransaction().getTransactionId();
+
+        // 1차 방어: 같은 거래에 대해 이미 사건이 있으면 애초에 시도하지 않음 (빠른 실패, 대부분의 경우 여기서 걸러짐)
+        Optional<FraudCases> existing = fraudCaseRepository.findByTransaction_TransactionId(transactionId);
+        if (existing.isPresent()) {
+            return existing;
+        }
+
         CasePriority priority = calculatePriority(detectionResult.getFraudProbability());
 
         FraudCases fraudCase = FraudCases.builder()
@@ -73,7 +84,15 @@ public class FraudCaseService {
                 .openedAt(LocalDateTime.now())
                 .build();
 
-        FraudCases saved = fraudCaseRepository.save(fraudCase);
+        FraudCases saved;
+        try {
+            saved = fraudCaseRepository.save(fraudCase);
+        } catch (DataIntegrityViolationException e) {
+            // 2차 방어: 위의 존재 체크와 save() 사이에 다른 스레드/요청이 끼어들어
+            // 먼저 저장을 끝낸 경우 (진짜 동시 호출). DB unique 제약(uk_fraud_cases_transaction_id)에
+            // 걸려서 여기로 떨어지며, 이땐 새로 만들지 않고 방금 저장된 기존 사건을 그대로 반환한다.
+            return fraudCaseRepository.findByTransaction_TransactionId(transactionId);
+        }
 
         fraudCaseHistoryService.record(
                 saved,
@@ -98,12 +117,12 @@ public class FraudCaseService {
     }
 
     // 5차: 관리자 사건 목록 조회
-    public List<FraudCaseListResponse> getCaseList() {
-        List<FraudCases> cases = fraudCaseRepository.findAll();
+    // findAll() 전체 조회는 사건이 몇만 건이면 한 번에 다 긁어와서 응답이 느려지고 메모리도 많이 먹기 때문에
+    // Pageable을 받아 페이지 단위로만 조회하도록 변경. 정렬 기준(예: 최신순)은 호출부(Pageable)에서 지정.
+    public Page<FraudCaseListResponse> getCaseList(Pageable pageable) {
+        Page<FraudCases> cases = fraudCaseRepository.findAll(pageable);
 
-        return cases.stream()
-                .map(this::toListResponse) // 각각을 DTO로 변환
-                .toList();  
+        return cases.map(this::toListResponse); // 각각을 DTO로 변환
     }
     
     private FraudCaseListResponse toListResponse(FraudCases fraudCase) {
