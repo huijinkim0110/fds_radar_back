@@ -2,11 +2,14 @@ package fds.radar.service.account;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.springframework.stereotype.Component;
+
 import fds.radar.repository.account.CardRepository;
 
 /**
  * CardNumberGenerator
  */
+@Component
 public class CardNumberGenerator {
 
     private final CardRepository cardRepository;
