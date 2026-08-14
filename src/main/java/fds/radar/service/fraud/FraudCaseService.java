@@ -8,10 +8,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import fds.radar.common.TransactionStatus;
 
 import fds.radar.common.CasePriority;
 import fds.radar.common.CaseStatus;
 import fds.radar.common.FraudActionType;
+import fds.radar.common.FraudDecision;
 import fds.radar.common.LockRequestStatus;
 import fds.radar.common.UserConfirmation;
 import fds.radar.common.UserRole;
@@ -30,6 +32,7 @@ import fds.radar.repository.fraud.FraudCaseRepository;
 import fds.radar.repository.fraud.LockRequestRepository;
 import fds.radar.repository.user.UserRepository;
 import fds.radar.service.fraud.vo.LockResult;
+import fds.radar.service.fraud.vo.TransactionStatusResult;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,6 +48,7 @@ public class FraudCaseService {
     private final UserRepository userRepository;
     private final LockRequestRepository lockRequestRepository;
     private final LockService lockService;
+    private final TransactionStatusService transactionStatusService;
 
     // TODO: FraudCases.assignedAdminId, FraudCaseHistories.adminId가 둘 다 nullable=false라
     // 자동생성 시점엔 실제 담당자가 없으므로 임시로 SYSTEM 계정(userId=1)을 사용.
@@ -313,6 +317,39 @@ public class FraudCaseService {
 
     // 9차: 최종 판정(정상/사기) + 사건 종결 처리
     public void finalizeDecision(Long fraudCaseId, FraudDecisionRequest request) {
-        throw new UnsupportedOperationException("9차에서 구현 예정");
+        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+
+        // 조사가 끝나지 않은 사건을 실수로 종결시키는 걸 방지
+        if (fraudCase.getCaseStatus() != CaseStatus.INVESTIGATING) {
+            throw new IllegalStateException(
+                "조사중 상태의 사건만 최종 판정할 수 있습니다. 현재 상태: " + fraudCase.getCaseStatus());
+        }
+
+        FraudDecision decision = request.getDecision();
+        TransactionStatus targetStatus = (decision == FraudDecision.FRAUD) 
+                ? TransactionStatus.CANCELED 
+                : TransactionStatus.APPROVED;
+
+        // 거래 상태 변경 위임 (지금은 MockTransactionStatusService가 실제로 DB 반영까지 함)
+        TransactionStatusResult result = transactionStatusService.updateStatus(
+                fraudCase.getTransaction().getTransactionId(), targetStatus);
+            
+        fraudCase.setFraudDecision(decision);
+        fraudCase.setCaseStatus(CaseStatus.CLOSED);
+        fraudCase.setClosedAt(LocalDateTime.now());
+        fraudCaseRepository.save(fraudCase);
+
+        Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
+
+        fraudCaseHistoryService.record(
+            fraudCase,
+            FraudActionType.FINALIZE,
+            CaseStatus.INVESTIGATING,
+            CaseStatus.CLOSED,
+            "최종 판정: " + decision + " → 거래상태 " + targetStatus
+                    + (result.isSuccess() ? " 반영 완료" : " 반영 실패: " + result.getMessage()),
+            actingAdminId
+    );
     }
 }
