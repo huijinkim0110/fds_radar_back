@@ -32,4 +32,14 @@ public class InvestmentDiagnosisRequestDTO {
 
     // 7. 원금 보장 필요 여부
     private Boolean principalProtectionRequired;
+
+    // AI 추천모델 입력용 인적사항
+    private String age;
+    private String gender;
+    private String region;
+    private String incomeBracket;
+    private String occupationGroup;
+    private String maritalStatus;
+    private String crossCoverage;
+    private String diseaseHistory;
 }
