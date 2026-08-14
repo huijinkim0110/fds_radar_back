@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ import fds.radar.dto.fraud.FraudCaseHistoryResponse;
 import fds.radar.dto.fraud.FraudCaseListResponse;
 import fds.radar.dto.fraud.FraudCaseStatusRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
+import fds.radar.dto.fraud.FraudLockRequest;
 import fds.radar.service.fraud.FraudCaseHistoryService;
 import fds.radar.service.fraud.FraudCaseService;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,14 @@ public class FraudCaseAdminController {
     public ResponseEntity<Void> assignAdmin(@PathVariable Long fraudCaseId,
                                              @RequestBody FraudCaseAssignRequest request) {
         fraudCaseService.assignAdmin(fraudCaseId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    // 8차: 카드/계좌 잠금 요청
+    @PostMapping("/{fraudCaseId}/lock")
+    public ResponseEntity<Void> requestLock(@PathVariable Long fraudCaseId,
+                                         @RequestBody FraudLockRequest request) {
+        fraudCaseService.requestLock(fraudCaseId, request);
         return ResponseEntity.ok().build();
     }
 

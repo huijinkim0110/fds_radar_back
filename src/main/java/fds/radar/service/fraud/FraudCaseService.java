@@ -1,7 +1,6 @@
 package fds.radar.service.fraud;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 import fds.radar.common.CasePriority;
 import fds.radar.common.CaseStatus;
 import fds.radar.common.FraudActionType;
+import fds.radar.common.LockRequestStatus;
 import fds.radar.common.UserConfirmation;
 import fds.radar.common.UserRole;
 import fds.radar.dto.fraud.FraudCaseAssignRequest;
@@ -21,11 +21,15 @@ import fds.radar.dto.fraud.FraudCaseListResponse;
 import fds.radar.dto.fraud.FraudCaseStatusRequest;
 import fds.radar.dto.fraud.FraudConfirmationRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
+import fds.radar.dto.fraud.FraudLockRequest;
+import fds.radar.entity.dispute.LockRequests;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.fraud.FraudCaseRepository;
+import fds.radar.repository.fraud.LockRequestRepository;
 import fds.radar.repository.user.UserRepository;
+import fds.radar.service.fraud.vo.LockResult;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -39,6 +43,8 @@ public class FraudCaseService {
     private final FraudCaseRepository fraudCaseRepository;
     private final FraudCaseHistoryService fraudCaseHistoryService;
     private final UserRepository userRepository;
+    private final LockRequestRepository lockRequestRepository;
+    private final LockService lockService;
 
     // TODO: FraudCases.assignedAdminId, FraudCaseHistories.adminId가 둘 다 nullable=false라
     // 자동생성 시점엔 실제 담당자가 없으므로 임시로 SYSTEM 계정(userId=1)을 사용.
@@ -262,6 +268,46 @@ public class FraudCaseService {
             fraudCase.getCaseStatus(),
             "사용자 본인거래 확인결과 변경: " + confirmation,
             actingUserId
+        );
+    }
+
+    // 8차: 카드/계좌 잠금 요청 처리
+    public void requestLock(Long fraudCaseId, FraudLockRequest request) {
+        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+
+        Users targetUser = fraudCase.getUser();
+        
+        // 1) 잠금 요청 기록 생성 (일단 RECEIVED 상태로)
+        LockRequests lockRequest = LockRequests.builder()
+                .fraudCase(fraudCase)
+                .user(targetUser)
+                .targetType(request.getTargetType())
+                .requestReason(request.getRequestReason())
+                .requestStatus(LockRequestStatus.RECEIVED)
+                .requestedAt(LocalDateTime.now())
+                .build();
+        lockRequestRepository.save(lockRequest);
+
+        // 2) 실제 잠금 처리 위임 (지금은 MockLockService가 항상 success=true 반환)
+        LockResult result = lockService.lock(request.getTargetType(), targetUser.getUserId());
+
+        // 3) 처리 결과에 따라 요청 상태 갱신
+        lockRequest.setRequestStatus(result.isSuccess() ? LockRequestStatus.COMPLETED : LockRequestStatus.REJECTED);
+        lockRequest.setProcessedAt(LocalDateTime.now());
+        lockRequestRepository.save(lockRequest);
+
+        // TODO(로그인 기능 붙으면 수정): 지금은 사건 담당 관리자를 행위자로 임시 기록
+        Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
+
+        fraudCaseHistoryService.record(
+            fraudCase,
+            FraudActionType.LOCK,
+            fraudCase.getCaseStatus(),
+            fraudCase.getCaseStatus(), // 잠금은 사건 상태(RECEIVED/INVESTIGATING/CLOSED) 자체를 안 바꿈
+            (result.isSuccess() ? "잠금 처리 성공: " : "잠금 처리 실패: ")
+                    + request.getTargetType() + " - " + result.getMessage(),
+            actingAdminId
         );
     }
 
