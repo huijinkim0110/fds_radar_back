@@ -13,6 +13,8 @@ import fds.radar.entity.transaction.Transactions;
 import fds.radar.repository.dispute.AiModelRepository;
 import fds.radar.repository.fraud.FraudDetectionResultRepository;
 import fds.radar.repository.transaction.TransactionRepository;
+import fds.radar.service.fraud.vo.FraudPrediction;
+import fds.radar.service.fraud.vo.TransactionData;
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import fds.radar.common.PredictedFraudType;
 import fds.radar.common.PredictedResult;
+import fds.radar.service.fraud.vo.FraudPrediction;
+import fds.radar.service.fraud.vo.TransactionData;
 
 @Service
 public class MockFraudModelService implements FraudModelService {
