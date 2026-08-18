@@ -27,6 +27,7 @@ public class TransferController {
 public ResponseEntity<String> transfer(@RequestBody @Valid TransferRequest requestDto) {
     try {
         transferRecipientService.transfer(
+            requestDto.getCardId(),
             requestDto.getReceiverAccountNumber(), 
             requestDto.getAmount()
         );

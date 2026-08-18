@@ -1,7 +1,9 @@
 package fds.radar.service.account;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,7 @@ import fds.radar.dto.account.CardResponse;
 import fds.radar.entity.account.Cards;
 import fds.radar.entity.account.Institutions;
 import fds.radar.entity.user.Users;
+import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
 import fds.radar.repository.account.CardRepository;
 import fds.radar.repository.account.InstitutionRepository;
@@ -61,4 +64,47 @@ public class CardService {
     
     return CardResponse.from(cardRepository.save(card));
     }
+
+    // 2. 내 카드 목록 조회
+    public List<CardResponse> getCardsByUserId(Long userId) {
+        return cardRepository.findByUser_UserId(userId).stream()
+            .map(CardResponse::from)
+            .collect(Collectors.toList());
+    }
+
+    // 3. 카드 이용한도 변경
+    @Transactional
+    public void updateCardLimit(Long cardId, BigDecimal creditLimit) {
+        Cards card = cardRepository.findById(cardId)
+            .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
+        card.setCreditLimit(creditLimit);
+    }
+
+    // 4. 카드 상태 변경
+    @Transactional
+    public void updateCardStatus(Long cardId, CardStatus status) {
+        Cards card = cardRepository.findById(cardId)
+            .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
+        card.setStatus(status);
+    }
+
+    @Transactional
+public void payWithCard(Long cardId, BigDecimal amount) {
+
+    Cards card = cardRepository.findByCardIdForUpdate(cardId)
+        .orElseThrow(() ->
+            new NotFoundException("카드를 찾을 수 없습니다."));
+
+    if (card.getAvailableLimit().compareTo(amount) < 0) {
+        throw new BusinessException("사용 가능한도가 부족합니다.");
+    }
+
+    BigDecimal newLimit =
+        card.getAvailableLimit().subtract(amount);
+
+    card.setAvailableLimit(newLimit);
+
+    // DB에 명시적으로 저장
+    cardRepository.save(card);
+}
 }

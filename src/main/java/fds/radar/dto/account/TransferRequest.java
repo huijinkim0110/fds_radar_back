@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class TransferRequest {
     
+    private Long cardId; // 카드 송금 일 때만
+
     @NotBlank(message = "받는 계좌번호는 필수입니다.")
     private String receiverAccountNumber; // 상대방 계좌번호
 
@@ -15,9 +17,14 @@ public class TransferRequest {
 
     public TransferRequest() {}
 
-    public TransferRequest(String receiverAccountNumber, Long amount) {
+    public TransferRequest(Long cardId, String receiverAccountNumber, Long amount) {
+        this.cardId = cardId;
         this.receiverAccountNumber = receiverAccountNumber;
         this.amount = amount;
+    }
+
+    public Long getCardId() {
+        return cardId;
     }
 
     public String getReceiverAccountNumber() {
@@ -27,4 +34,6 @@ public class TransferRequest {
     public Long getAmount() {
         return amount;
     }
+
+
 }
