@@ -280,6 +280,10 @@ public class FraudCaseService {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
 
+        if (fraudCase.getCaseStatus() == CaseStatus.CLOSED) {
+            throw new IllegalStateException("이미 종결된 사건에는 잠금을 요청할 수 없습니다.");
+        }
+
         Users targetUser = fraudCase.getUser();
         
         // 1) 잠금 요청 기록 생성 (일단 RECEIVED 상태로)
