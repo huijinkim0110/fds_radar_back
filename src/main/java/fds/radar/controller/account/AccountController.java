@@ -20,7 +20,7 @@ import fds.radar.service.account.AccountSerivce;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/accounts")
 @CrossOrigin(origins = "*") /// 테스트용 - 프로트에서의 호출 허용
 public class AccountController {
     
