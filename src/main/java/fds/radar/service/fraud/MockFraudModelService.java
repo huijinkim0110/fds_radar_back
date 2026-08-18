@@ -2,14 +2,12 @@ package fds.radar.service.fraud;
 
 import java.math.BigDecimal;
 
-import org.springframework.stereotype.Service;
-
 import fds.radar.common.PredictedFraudType;
 import fds.radar.common.PredictedResult;
 import fds.radar.service.fraud.vo.FraudPrediction;
 import fds.radar.service.fraud.vo.TransactionData;
 
-@Service
+// @Service (AutoMLFraudModelService로 전환 시 주석 처리)
 public class MockFraudModelService implements FraudModelService {
 
     private static final BigDecimal HIGH_AMOUNT_THRESHOLD = new BigDecimal("1000000");

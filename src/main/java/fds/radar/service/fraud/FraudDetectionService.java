@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import fds.radar.common.BusinessCategory;
 import fds.radar.common.ModelType;
 import fds.radar.dto.fraud.FraudDetectionRequest;
 import fds.radar.dto.fraud.FraudDetectionResponse;
@@ -100,6 +101,11 @@ public class FraudDetectionService {
                 ? transaction.getMerchant().getMerchantName()
                 : null;
 
+         // 추가: 가맹점 업종 (계좌이체는 가맹점 자체가 없어서 null이 됨 — 정상)
+        BusinessCategory merchantCategory = transaction.getMerchant() != null
+                ? transaction.getMerchant().getBusinessCategory()
+                : null;
+        
         return TransactionData.builder()
                 .transactionId(transaction.getTransactionId())
                 .amount(transaction.getAmount())
@@ -109,6 +115,7 @@ public class FraudDetectionService {
                 .countryCode(transaction.getCountryCode())
                 .merchantName(merchantName)
                 .newRecipient(newRecipient)
+                .merchantCategory(merchantCategory)   // ← 이 줄 추가
                 .build();
     }
 }

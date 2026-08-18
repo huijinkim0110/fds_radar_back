@@ -3,6 +3,7 @@ package fds.radar.service.fraud.vo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import fds.radar.common.BusinessCategory;
 import fds.radar.common.TransactionChannel;
 import fds.radar.common.TransactionType;
 import lombok.AllArgsConstructor;
@@ -26,4 +27,5 @@ public class TransactionData {
     private String countryCode;
     private String merchantName;
     private boolean newRecipient;
+    private BusinessCategory merchantCategory; // 추가: 가맹점 업종 (카드 모델 2번째로 중요한 피처)
 }
