@@ -1,7 +1,7 @@
 package fds.radar;
 
 import org.springframework.boot.SpringApplication;
-imㅇport org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class RadarApplication {

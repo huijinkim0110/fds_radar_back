@@ -13,10 +13,12 @@ import fds.radar.dto.account.AccountCreateRequest;
 import fds.radar.dto.account.AccountLimitUpdateRequest;
 import fds.radar.dto.account.AccountResponse;
 import fds.radar.entity.account.Accounts;
+import fds.radar.entity.account.Institutions;
 import fds.radar.entity.user.Users;
 import fds.radar.exception.BusinessException;
 import fds.radar.exception.NotFoundException;
 import fds.radar.repository.account.AccountRepository;
+import fds.radar.repository.account.InstitutionRepository;
 import fds.radar.repository.user.UserRepository;
 
 @Service
@@ -25,11 +27,15 @@ public class AccountSerivce {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final AccountNumberGenerator accountNumberGenerator;
+    private final InstitutionRepository institutionRepository;
 
-    public AccountSerivce(AccountRepository accountRepository, UserRepository userRepository, AccountNumberGenerator accountNumberGenerator) {
+    public AccountSerivce(AccountRepository accountRepository, UserRepository userRepository, AccountNumberGenerator accountNumberGenerator,
+       InstitutionRepository institutionRepository
+    ) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.accountNumberGenerator = accountNumberGenerator;
+        this.institutionRepository = institutionRepository;
     }
 
     // 계좌 개설 - 잔액 0, 발번, status ACTIVE
@@ -38,16 +44,22 @@ public class AccountSerivce {
         Users user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
 
-            Accounts account = Accounts.builder()
-                .user(user)
-                .accountNumber(accountNumberGenerator.generate())
-                .accountType(AccountType.CHECKING)
-                .balance(BigDecimal.ZERO)
-                .dailyTransferLimit(request.getDailyTransferLimit())
-                .accountStatus(AccountStatus.ACTIVE)
-                .openedAt(LocalDateTime.now())
-                .build();
-            return AccountResponse.from(accountRepository.save(account));            
+        Institutions institution = institutionRepository.findById(request.getInstitutionId())
+        .orElseThrow(() -> new NotFoundException("금융기관을 찾을 수 없습니다."));
+
+
+        Accounts account = Accounts.builder()
+            .user(user)
+            .institution(institution)
+            .accountName(request.getAccountName())
+            .accountNumber(accountNumberGenerator.generate())
+            .accountType(AccountType.CHECKING)
+            .balance(BigDecimal.ZERO)
+            .dailyTransferLimit(request.getDailyTransferLimit())
+            .accountStatus(AccountStatus.ACTIVE)
+            .openedAt(LocalDateTime.now())
+            .build();
+        return AccountResponse.from(accountRepository.save(account));            
     }
 
     // 내 계좌 목록
