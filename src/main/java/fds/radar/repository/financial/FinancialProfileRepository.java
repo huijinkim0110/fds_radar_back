@@ -7,5 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.finance.FinancialProfiles;
 
 public interface FinancialProfileRepository extends JpaRepository<FinancialProfiles, Long> {
-    Optional<FinancialProfiles> findByUser_UserId(Long userId);
+    static Optional<FinancialProfiles> findByUser_UserId(Long userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findByUser_UserId'");
+    }
 }
