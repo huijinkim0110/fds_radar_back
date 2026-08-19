@@ -48,6 +48,15 @@ public class ChatService {
         return chatSessionsRepository.save(session);
     }
 
+    // 세션 ID로 직접 조회(메시지 이력 포함)
+    @Transactional(readOnly=true)
+    public ChatSessionResponseDTO getSessionById(Long sessionId) {
+        ChatSessions session = chatSessionsRepository.findById(sessionId)
+                                                     .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+
+        return toResponseDTOWithMessages(session);
+    }
+
     // 새 대화 시작 - 현재 세션 CLOSED 처리(이력은 DB에 저장)
     @Transactional
     public void closeSession(Long sessionId) {

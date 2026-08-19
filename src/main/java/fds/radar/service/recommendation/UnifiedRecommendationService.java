@@ -51,8 +51,8 @@ public class UnifiedRecommendationService {
         // 5. 점수 내림차순 정렬
         deduplicated.sort(Comparator.comparing(RecommendedProductDTO::getScore).reversed());
 
-        return deduplicated;
-
+        // 6. 전체 통합 상위 5개만 반환
+        return deduplicated.stream().limit(5).toList();
     }
 
     // AI가 반환한 상품명을, 우리 DB의 실제 productId와 매칭

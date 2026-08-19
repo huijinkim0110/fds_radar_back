@@ -26,6 +26,12 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getOrCreateSession(userId));
     }
 
+    // 세션 ID로 직접 조회(관리자용 - userId 필요없음)
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<ChatSessionResponseDTO> getSessionById(@PathVariable Long sessionId) {
+        return ResponseEntity.ok(chatService.getSessionById(sessionId));
+    }
+
     // 새 대화 시작 - 현재 세션 닫기
     // POST /chat/sessions/{sessionId}/close
     @PostMapping("/{sessionId}/close")
