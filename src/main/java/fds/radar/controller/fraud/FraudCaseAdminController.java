@@ -22,6 +22,7 @@ import fds.radar.dto.fraud.FraudCaseListResponse;
 import fds.radar.dto.fraud.FraudCaseStatusRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
+import fds.radar.dto.fraud.AdminUserResponse;
 import fds.radar.service.fraud.FraudCaseHistoryService;
 import fds.radar.service.fraud.FraudCaseService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,12 @@ public class FraudCaseAdminController {
 
     private final FraudCaseService fraudCaseService;
     private final FraudCaseHistoryService fraudCaseHistoryService;
+
+    // 담당자 배정 드롭다운용: ADMIN 목록 조회
+    @GetMapping("/assignable-admins")
+    public ResponseEntity<List<AdminUserResponse>> getAssignableAdmins() {
+        return ResponseEntity.ok(fraudCaseService.getAssignableAdmins());
+    }
 
     // 5차: 관리자 사건 목록 조회(페이징)
     // 기본값: 페이지당 20건, 접수일시(openedAt) 최신순. 클라이언트가 ?page=1&size=50&sort=priority,desc 처럼 넘기면 그대로 반영됨.

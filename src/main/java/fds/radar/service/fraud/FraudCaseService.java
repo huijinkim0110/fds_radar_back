@@ -15,6 +15,7 @@ import fds.radar.common.CaseStatus;
 import fds.radar.common.FraudActionType;
 import fds.radar.common.FraudDecision;
 import fds.radar.common.LockRequestStatus;
+import fds.radar.common.RequestTargetType;
 import fds.radar.common.UserConfirmation;
 import fds.radar.common.UserRole;
 import fds.radar.dto.fraud.FraudCaseAssignRequest;
@@ -24,6 +25,7 @@ import fds.radar.dto.fraud.FraudCaseStatusRequest;
 import fds.radar.dto.fraud.FraudConfirmationRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
+import fds.radar.dto.fraud.AdminUserResponse;
 import fds.radar.entity.dispute.LockRequests;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
@@ -104,12 +106,16 @@ public class FraudCaseService {
             return fraudCaseRepository.findByTransaction_TransactionId(transactionId);
         }
 
+        String probabilityPercent = detectionResult.getFraudProbability()
+                .multiply(new java.math.BigDecimal("100"))
+                .setScale(0, java.math.RoundingMode.HALF_UP) + "%";
+        
         fraudCaseHistoryService.record(
                 saved,
                 FraudActionType.HOLD,
                 null,
                 CaseStatus.RECEIVED,
-                "AI 탐지 결과 threshold(" + threshold + ") 초과로 사건 자동 생성. probability=" + detectionResult.getFraudProbability(),
+                "AI 탐지 결과 이상거래 가능성이 높게 나타나(이상확률 " + probabilityPercent + ") 사건이 자동 생성되었습니다.",
                 SYSTEM_ADMIN_ID
         );
 
@@ -124,6 +130,17 @@ public class FraudCaseService {
         } else {
             return CasePriority.LOW;
         }
+    }
+
+    // 담당자 배정 드롭다운용: ADMIN 권한을 가진 사용자 목록 조회
+    public java.util.List<AdminUserResponse> getAssignableAdmins() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.getRole() == UserRole.ADMIN)
+                .map(u -> AdminUserResponse.builder()
+                        .userId(u.getUserId())
+                        .name(u.getName())
+                        .build())
+                .toList();
     }
 
     // 5차: 관리자 사건 목록 조회
@@ -205,7 +222,7 @@ public class FraudCaseService {
             FraudActionType.INVESTIGATE,
             oldStatus,
             newStatus,
-            "사건 상태 변경: " + oldStatus + " → " + newStatus,
+            "관리자가 사건 상태를 변경했습니다.",
             actingAdminId
         );
     }
@@ -226,6 +243,10 @@ public class FraudCaseService {
     public void assignAdmin(Long fraudCaseId, FraudCaseAssignRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
+
+        if (fraudCase.getCaseStatus() == CaseStatus.CLOSED) {
+            throw new IllegalStateException("이미 종결된 사건은 담당자를 재배정할 수 없습니다.");
+        }
             
         Users newAdmin = userRepository.findById(request.getAdminId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다. id=" + request.getAdminId()));
@@ -246,7 +267,7 @@ public class FraudCaseService {
             FraudActionType.INVESTIGATE,
             fraudCase.getCaseStatus(),
             fraudCase.getCaseStatus(),
-            "담당자 변경: " + previousAdmin.getUserId() + " → " + newAdmin.getUserId(),
+            "담당자가 '" + previousAdmin.getName() + "'에서 '" + newAdmin.getName() + "'(으)로 변경되었습니다.",
             newAdmin.getUserId()
         );
     }
@@ -270,7 +291,7 @@ public class FraudCaseService {
             FraudActionType.CONFIRMED,
             fraudCase.getCaseStatus(),
             fraudCase.getCaseStatus(),
-            "사용자 본인거래 확인결과 변경: " + confirmation,
+            "사용자가 본인거래 확인 결과를 '" + confirmation.getConfirmationResult() + "'(으)로 응답했습니다.",
             actingUserId
         );
     }
@@ -313,8 +334,8 @@ public class FraudCaseService {
             FraudActionType.LOCK,
             fraudCase.getCaseStatus(),
             fraudCase.getCaseStatus(), // 잠금은 사건 상태(RECEIVED/INVESTIGATING/CLOSED) 자체를 안 바꿈
-            (result.isSuccess() ? "잠금 처리 성공: " : "잠금 처리 실패: ")
-                    + request.getTargetType() + " - " + result.getMessage(),
+            targetTypeText(request.getTargetType()) + " 잠금 요청이 "
+                    + (result.isSuccess() ? "정상적으로 처리되었습니다." : "처리에 실패했습니다."),
             actingAdminId
         );
     }
@@ -346,14 +367,25 @@ public class FraudCaseService {
 
         Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
 
+        String decisionText = (decision == FraudDecision.FRAUD) ? "사기" : "정상";
+
         fraudCaseHistoryService.record(
             fraudCase,
             FraudActionType.FINALIZE,
             CaseStatus.INVESTIGATING,
             CaseStatus.CLOSED,
-            "최종 판정: " + decision + " → 거래상태 " + targetStatus
-                    + (result.isSuccess() ? " 반영 완료" : " 반영 실패: " + result.getMessage()),
+            "관리자가 최종 판정을 '" + decisionText + "'(으)로 확정하여, 거래 상태가 '" + targetStatus.getDescription() + "'(으)로 "
+                    + (result.isSuccess() ? "반영되었습니다." : "반영되지 않았습니다: " + result.getMessage()),
             actingAdminId
     );
+    }
+
+    private String targetTypeText(RequestTargetType targetType) {
+        if (targetType == null) return "-";
+        switch (targetType) {
+            case CARD: return "카드";
+            case ACCOUNT: return "계좌";
+            default: return targetType.toString();
+        }
     }
 }
