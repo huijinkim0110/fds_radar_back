@@ -77,7 +77,7 @@ public class ProductComparisonsService {
         List<ProductComparisonItems> items = productComparisonItemsRepository.findByComparison_ComparisonId(comparisonId);
 
         List<ProductCompareItemDTO> itemDTOs = items.stream()
-                                                    .map(item -> toCompareItemDTO(item.getProduct()))
+                                                    .map(this::toCompareItemDTO)
                                                     .toList();
 
         return ComparisonDetailResponseDTO.builder()
@@ -93,8 +93,10 @@ public class ProductComparisonsService {
         return productComparisonsRepository.findByUser_UserId(userId);
     }
 
-    private ProductCompareItemDTO toCompareItemDTO(FinancialProducts p) {
+    private ProductCompareItemDTO toCompareItemDTO(ProductComparisonItems item) {
+        FinancialProducts p = item.getProduct();
         return ProductCompareItemDTO.builder()
+                                    .comparisonItemId(item.getComparisonItemId())
                                     .productId(p.getProductId())
                                     .productName(p.getProductName())
                                     .institutionName(p.getInstitution().getInstitutionName())
