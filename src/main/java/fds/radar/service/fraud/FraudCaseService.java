@@ -1,6 +1,7 @@
 package fds.radar.service.fraud;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,7 @@ import fds.radar.dto.fraud.FraudConfirmationRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
 import fds.radar.dto.fraud.AdminUserResponse;
+import fds.radar.dto.fraud.AdminDashboardResponse;
 import fds.radar.entity.dispute.LockRequests;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
@@ -140,6 +142,37 @@ public class FraudCaseService {
                         .userId(u.getUserId())
                         .name(u.getName())
                         .build())
+                .toList();
+    }
+
+    // 관리자 마이페이지 대시보드: 배정받은 사건 수(진행중, CLOSED 제외) + 오늘 접수된 사건 수(전체 기준) + 상태별 처리 현황 요약
+    public AdminDashboardResponse getDashboard(Long adminId) {
+        long assignedCaseCount = fraudCaseRepository
+                .countByAssignedAdminId_UserIdAndCaseStatusNot(adminId, CaseStatus.CLOSED);
+
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        long todayReceivedCaseCount = fraudCaseRepository.countByOpenedAtGreaterThanEqual(todayStart);
+
+        long receivedCaseCount = fraudCaseRepository
+                .countByAssignedAdminId_UserIdAndCaseStatus(adminId, CaseStatus.RECEIVED);
+        long investigatingCaseCount = fraudCaseRepository
+                .countByAssignedAdminId_UserIdAndCaseStatus(adminId, CaseStatus.INVESTIGATING);
+        long closedCaseCount = fraudCaseRepository
+                .countByAssignedAdminId_UserIdAndCaseStatus(adminId, CaseStatus.CLOSED);
+
+        return AdminDashboardResponse.builder()
+                .assignedCaseCount(assignedCaseCount)
+                .todayReceivedCaseCount(todayReceivedCaseCount)
+                .receivedCaseCount(receivedCaseCount)
+                .investigatingCaseCount(investigatingCaseCount)
+                .closedCaseCount(closedCaseCount)
+                .build();
+    }
+
+    // 관리자 마이페이지: 내 담당 사건 목록 (전체, 페이징 없음 — 개인 담당 건수라 많지 않을 것으로 가정)
+    public java.util.List<FraudCaseListResponse> getMyCases(Long adminId) {
+        return fraudCaseRepository.findByAssignedAdminId_UserId(adminId).stream()
+                .map(this::toListResponse)
                 .toList();
     }
 

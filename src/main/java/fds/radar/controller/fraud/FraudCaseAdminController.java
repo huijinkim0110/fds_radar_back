@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import fds.radar.dto.fraud.FraudCaseAssignRequest;
 import fds.radar.dto.fraud.FraudCaseDetailResponse;
@@ -23,6 +24,7 @@ import fds.radar.dto.fraud.FraudCaseStatusRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
 import fds.radar.dto.fraud.AdminUserResponse;
+import fds.radar.dto.fraud.AdminDashboardResponse;
 import fds.radar.service.fraud.FraudCaseHistoryService;
 import fds.radar.service.fraud.FraudCaseService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,20 @@ public class FraudCaseAdminController {
     @GetMapping("/assignable-admins")
     public ResponseEntity<List<AdminUserResponse>> getAssignableAdmins() {
         return ResponseEntity.ok(fraudCaseService.getAssignableAdmins());
+    }
+
+    // 관리자 마이페이지 대시보드 조회
+    // TODO(로그인 기능 붙으면 수정): 지금은 로그인 기능이 없어서 adminId를 쿼리 파라미터로 임시로 받음.
+    // 나중엔 SecurityContextHolder에서 로그인한 관리자 id를 꺼내는 방식으로 교체.
+    @GetMapping("/mypage/dashboard")
+    public ResponseEntity<AdminDashboardResponse> getDashboard(@RequestParam Long adminId) {
+        return ResponseEntity.ok(fraudCaseService.getDashboard(adminId));
+    }
+
+    // 관리자 마이페이지: 내 담당 사건 목록
+    @GetMapping("/mypage/my-cases")
+    public ResponseEntity<List<FraudCaseListResponse>> getMyCases(@RequestParam Long adminId) {
+        return ResponseEntity.ok(fraudCaseService.getMyCases(adminId));
     }
 
     // 5차: 관리자 사건 목록 조회(페이징)
