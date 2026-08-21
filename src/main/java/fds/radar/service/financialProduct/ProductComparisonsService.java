@@ -107,4 +107,14 @@ public class ProductComparisonsService {
                                     .principalProtection(p.isPrincipalProtection())
                                     .build();
     }
+
+    // 비교함 이름 저장(변경) - 담긴 상품은 그대로 두고 이름만 바꿈
+    @Transactional
+    public ProductComparisons renameComparison(Long comparisonId, String comparisonName) {
+        ProductComparisons comparison = productComparisonsRepository.findById(comparisonId)
+                                                                    .orElseThrow(() -> new IllegalArgumentException("비교함을 찾을 수 없습니다."));
+
+        comparison.setComparisonName(comparisonName);
+        return productComparisonsRepository.save(comparison);
+    }
 }
