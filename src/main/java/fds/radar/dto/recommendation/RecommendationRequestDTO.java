@@ -18,4 +18,8 @@ public class RecommendationRequestDTO {
     private String incomeBracket;
     private String occupationGroup;
     private String maritalStatus;
+
+    // 보험 추천 전용
+    private String crossCoverage;   // 특약 보유 형태
+    private String diseaseHistory;  // 질병 이력
 }

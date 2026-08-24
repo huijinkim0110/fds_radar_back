@@ -43,8 +43,8 @@ public class SuitabilityCheckService {
 
     // 선호기간별 허용 최대 가입기간(개월), null이면 제한 없음
     private static final Map<PreferredPeriod, Integer> PERIOD_LIMIT_MAP = Map.of(
-        PreferredPeriod.SHORT_TERM, 12,
-        PreferredPeriod.MID_TERM, 36
+        PreferredPeriod.SHORT_TERM, 24,
+        PreferredPeriod.MID_TERM, 60
         // LONG_TERM은 맵에 없음 -> 제한 없음 처리
     );
 
