@@ -46,6 +46,7 @@ public class DisputeRequests {
 
     @Column(columnDefinition = "TEXT")
     private String requestReason;
+    private String disputeType;
     private Integer requestAmount;
 
     @Enumerated(EnumType.STRING)
