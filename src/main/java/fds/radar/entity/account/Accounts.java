@@ -67,4 +67,6 @@ public class Accounts {
 
     @Column(nullable = false)
     private LocalDateTime openedAt;
+
+    
 }

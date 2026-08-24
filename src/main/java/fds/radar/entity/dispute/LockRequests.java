@@ -46,8 +46,11 @@ public class LockRequests {
     private LockRequestStatus requestStatus;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="fraud_case_id", nullable=false)
+    @JoinColumn(name="fraud_case_id", nullable=true)
     private FraudCases fraudCase;
+
+    @Column
+    private Long targetId;
 
     private LocalDateTime requestedAt;
     private LocalDateTime processedAt;

@@ -14,6 +14,6 @@ public class CardStatusUpdateRequest {
         this.status = status;
     }
 
-    public CardStatus geStatus () {return status;}
+    public CardStatus getStatus () {return status;}
 
 }

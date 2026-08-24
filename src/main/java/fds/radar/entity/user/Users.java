@@ -25,29 +25,37 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class Users {
+
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
-    @Column(nullable=false, unique=true)
-    private String loginId;
-    @Column(nullable=false)
+
+    @Column(nullable = false)
     private String password;
-    @Column(nullable=false)
+
+    @Column(nullable = false, unique = true)
     private String email;
-    @Column(nullable=false)
+
+    @Column(nullable = false)
     private String name;
-    
+
     private Date birthDate;
+
     private String phone;
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
+
     private LocalDateTime passwordUpdatedAt;
+
     private LocalDateTime lastLoginAt;
+
     private LocalDateTime withdrawnAt;
 }
