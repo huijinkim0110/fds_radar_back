@@ -47,7 +47,7 @@ public class FinancialProfileController {
     }
 
     // 금융 프로필 수정
-    @PutMapping("/{user/Id}")
+    @PutMapping("/{userId}")
     public ResponseEntity<FinancialProfileResponse> update(
             @PathVariable Long userId,
             @RequestBody FinancialProfileRequest request) {
