@@ -5,10 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.dto.chat.ChatMessageDTO;
+import fds.radar.dto.chat.ChatSendMessageRequestDTO;
 import fds.radar.dto.chat.ChatSessionResponseDTO;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +27,17 @@ public class ChatController {
     @GetMapping
     public ResponseEntity<ChatSessionResponseDTO> getOrCreateSession(@RequestParam Long userId) {
         return ResponseEntity.ok(chatService.getOrCreateSession(userId));
+    }
+    
+    // 자유입력 메시지 저장(USER/BOT 공용) - FastAPI 응답을 받은 후 프론트에서 호출
+    // POST /chat/sessions/{sessionId}/messages
+    @PostMapping("/{sessionId}/messages")
+    public ResponseEntity<ChatMessageDTO> saveMessage(
+            @PathVariable Long sessionId,
+            @RequestBody ChatSendMessageRequestDTO request) {
+        
+        ChatMessageDTO saved = chatService.saveMessage(sessionId, request.getSenderType(), request.getSenderId(), request.getContent());
+        return ResponseEntity.ok(saved);
     }
 
     // 세션 ID로 직접 조회(관리자용 - userId 필요없음)
