@@ -66,7 +66,7 @@ public class CardController {
         @PathVariable Long cardId,
         @Valid @RequestBody CardStatusUpdateRequest request
     ) {
-        cardService.updateCardStatus(cardId, request.geStatus());
+        cardService.updateCardStatus(cardId, request.getStatus());
         return ResponseEntity.ok().build();
     }
 

@@ -32,7 +32,7 @@ import fds.radar.repository.transaction.TransactionRepository;
 import fds.radar.repository.user.UserRepository;
 
 @Service
-public class TranscationService {
+public class TransactionService {
     
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
@@ -41,7 +41,7 @@ public class TranscationService {
     private final TransferRepository transferRepository;
     private final UserRepository userRepository;
 
-    public TranscationService(TransactionRepository transactionRepository,
+    public TransactionService(TransactionRepository transactionRepository,
                               AccountRepository accountRepository,
                               CardRepository cardRepository,
                               MerchanstRepository merchanstRepository,

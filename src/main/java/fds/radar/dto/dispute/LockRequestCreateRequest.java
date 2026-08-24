@@ -15,6 +15,11 @@ public class LockRequestCreateRequest {
     @Size(max = 200, message = "사유는 최대 200자입니다.")
     private String requestReason;
 
+    @NotNull(message = "targetId는 필수입니다")
+    private Long targetId;
+
+    public Long getTargetId() { return targetId; }
+    
     public LockRequestCreateRequest() {}
 
     public Long getFraudCaseId() {return farudCaseId;}
