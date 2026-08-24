@@ -63,4 +63,14 @@ public class InvestmentProfiles {
 
     @Column(nullable = false)
     private LocalDateTime diagnosedAt;
+    
+    // AI 추천모델 입력용 인적사항
+    private String age;
+    private String gender;
+    private String region;
+    private String incomeBracket;
+    private String occupationGroup;
+    private String maritalStatus;
+    private String crossCoverage;
+    private String diseaseHistory;
 }

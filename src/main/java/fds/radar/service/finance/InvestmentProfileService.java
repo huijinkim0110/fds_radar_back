@@ -50,6 +50,14 @@ public class InvestmentProfileService {
                                                        .principalProtectionPreference(dto.getPrincipalProtectionRequired())
                                                        .diagnosisScore(totalScore)
                                                        .diagnosedAt(LocalDateTime.now())
+                                                       .age(dto.getAge())
+                                                       .gender(dto.getGender())
+                                                       .region(dto.getRegion())
+                                                       .incomeBracket(dto.getIncomeBracket())
+                                                       .occupationGroup(dto.getOccupationGroup())
+                                                       .maritalStatus(dto.getMaritalStatus())
+                                                       .crossCoverage(dto.getCrossCoverage())
+                                                       .diseaseHistory(dto.getDiseaseHistory())
                                                        .build();
 
         return investmentProfilesRepository.save(profile);

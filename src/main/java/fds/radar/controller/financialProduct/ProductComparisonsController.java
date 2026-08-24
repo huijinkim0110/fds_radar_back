@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,6 +68,17 @@ public class ProductComparisonsController {
     @GetMapping
     public ResponseEntity<List<ProductComparisons>> getUserComparisons(@RequestParam Long userId) {
         List<ProductComparisons> result = productComparisonsService.getUserComparisons(userId);
+        return ResponseEntity.ok(result);
+    }
+
+    // 비교함 이름 저장(변경) - 담긴 상품 유지
+    // PATCH /product-comparisons/{comparisonId}?comparisonName=예적금비교
+    @PatchMapping("/{comparisonId}")
+    public ResponseEntity<ProductComparisons> renameComparison(
+            @PathVariable Long comparisonId,
+            @RequestParam String comparisonName) {
+        
+        ProductComparisons result = productComparisonsService.renameComparison(comparisonId, comparisonName);
         return ResponseEntity.ok(result);
     }
 }

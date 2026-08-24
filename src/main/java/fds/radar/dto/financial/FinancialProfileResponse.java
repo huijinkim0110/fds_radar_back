@@ -1,16 +1,21 @@
 package fds.radar.dto.financial;
 
+import java.time.LocalDateTime;
+
+import fds.radar.common.IncomeSource;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
 public class FinancialProfileResponse {
-    private Long id;
+    private Long financialProfileId;
     private String occupation;
-    private String employmentType;
+    private IncomeSource incomeSource;
     private Long monthlyIncome;
-    private Long monthlyExpense;
-    private String creditRating;
-    private Long savingCapacity;
+    private Long monthlyExpenses;
+    private Integer creditLevel;
+    private Long availableMonthlyAmount;
+    private Long emergencyFundAmount;
+    private LocalDateTime updatedAt;
 }
