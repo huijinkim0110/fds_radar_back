@@ -70,6 +70,7 @@ public class FinancialProfileService {
                                        .creditLevel(profile.getCreditLevel())
                                        .availableMonthlyAmount(profile.getAvailableMonthlyAmount())
                                        .emergencyFundAmount(profile.getEmergencyFundAmount())
+                                       .updatedAt(profile.getUpdatedAt())
                                        .build();
     }
 }

@@ -77,7 +77,7 @@ public class ProductComparisonsService {
         List<ProductComparisonItems> items = productComparisonItemsRepository.findByComparison_ComparisonId(comparisonId);
 
         List<ProductCompareItemDTO> itemDTOs = items.stream()
-                                                    .map(item -> toCompareItemDTO(item.getProduct()))
+                                                    .map(this::toCompareItemDTO)
                                                     .toList();
 
         return ComparisonDetailResponseDTO.builder()
@@ -93,8 +93,10 @@ public class ProductComparisonsService {
         return productComparisonsRepository.findByUser_UserId(userId);
     }
 
-    private ProductCompareItemDTO toCompareItemDTO(FinancialProducts p) {
+    private ProductCompareItemDTO toCompareItemDTO(ProductComparisonItems item) {
+        FinancialProducts p = item.getProduct();
         return ProductCompareItemDTO.builder()
+                                    .comparisonItemId(item.getComparisonItemId())
                                     .productId(p.getProductId())
                                     .productName(p.getProductName())
                                     .institutionName(p.getInstitution().getInstitutionName())
@@ -104,5 +106,15 @@ public class ProductComparisonsService {
                                     .subscriptionPeriod(p.getSubscriptionPeriod())
                                     .principalProtection(p.isPrincipalProtection())
                                     .build();
+    }
+
+    // 비교함 이름 저장(변경) - 담긴 상품은 그대로 두고 이름만 바꿈
+    @Transactional
+    public ProductComparisons renameComparison(Long comparisonId, String comparisonName) {
+        ProductComparisons comparison = productComparisonsRepository.findById(comparisonId)
+                                                                    .orElseThrow(() -> new IllegalArgumentException("비교함을 찾을 수 없습니다."));
+
+        comparison.setComparisonName(comparisonName);
+        return productComparisonsRepository.save(comparison);
     }
 }

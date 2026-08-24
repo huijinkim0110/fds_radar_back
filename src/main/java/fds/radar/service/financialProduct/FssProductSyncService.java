@@ -105,7 +105,6 @@ public class FssProductSyncService {
         return savedCount;
     }
 
-    @SuppressWarnings("unchecked")
     private BigDecimal findRateByTerm(List<Map<String, Object>> optionList, String finCoNo, String finPrdtCd,
             String term) {
         for (Map<String, Object> option : optionList) {

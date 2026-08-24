@@ -1,6 +1,7 @@
 package fds.radar.service.recommendation;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -19,7 +20,10 @@ public class AiRecommendationService {
     
     private final InvestmentProfileService investmentProfileService;
 
-    private final RestClient restClient = RestClient.create("http://localhost:8000");
+    private final RestClient restClient = RestClient.builder() 
+                                                    .baseUrl("http://localhost:8000")
+                                                    .requestFactory(new SimpleClientHttpRequestFactory())
+                                                    .build();
 
     // FastAPI 증권 추천 서버 호출
     public AiRecommendationResponseDTO getSecuritiesRecommendation(RecommendationRequestDTO dto) {
@@ -35,6 +39,7 @@ public class AiRecommendationService {
                                                                  .investment_propensity(mapRiskTendency(profile.getRiskTendency()))
                                                                  .build();
 
+        System.out.println("전송할 요청: " + aiRequest);
         return restClient.post()   
                          .uri("/recommend/securities")
                          .contentType(MediaType.APPLICATION_JSON)
