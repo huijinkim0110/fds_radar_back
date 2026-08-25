@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ProductCompareItemDTO {
+    private Long comparisonItemId;
     private Long productId;
     private String productName;
     private String institutionName;
