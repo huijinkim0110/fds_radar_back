@@ -111,6 +111,46 @@ public class FinancialProfileService {
         return toResponse(saved);
     }
 
+    // 금융 프로필 등록
+    @Transactional
+    public FinancialProfileResponse create(
+            Long userId,
+            FinancialProfileRequest request) {
+
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                );
+
+        // 이미 등록된 프로필이 있으면 막기
+        if (financialProfileRepository.findByUser_UserId(userId).isPresent()) {
+            throw new IllegalArgumentException(
+                    "이미 등록된 금융 프로필이 있습니다."
+            );
+        }
+
+        long availableMonthlyAmount =
+                request.getMonthlyIncome() - request.getMonthlyExpenses();
+
+        FinancialProfiles profile = FinancialProfiles.builder()
+                .user(user)
+                .occupation(request.getOccupation())
+                .incomeSource(request.getIncomeSource())
+                .monthlyIncome(request.getMonthlyIncome())
+                .monthlyExpenses(request.getMonthlyExpenses())
+                .creditLevel(request.getCreditLevel())
+                .availableMonthlyAmount(availableMonthlyAmount)
+                .emergencyFundAmount(request.getEmergencyFundAmount())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        FinancialProfiles saved =
+                financialProfileRepository.save(profile);
+
+        return toResponse(saved);
+    }
+
     // Entity -> Response 변환
     private FinancialProfileResponse toResponse(
             FinancialProfiles profile) {
@@ -124,44 +164,7 @@ public class FinancialProfileService {
                 .creditLevel(profile.getCreditLevel())
                 .availableMonthlyAmount(profile.getAvailableMonthlyAmount())
                 .emergencyFundAmount(profile.getEmergencyFundAmount())
+                .updatedAt(profile.getUpdatedAt())
                 .build();
     }
-
-   // 금융 프로필 등록
-@Transactional
-public FinancialProfileResponse create(
-        Long userId,
-        FinancialProfileRequest request) {
-
-    Users user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new IllegalArgumentException("사용자를 찾을 수 없습니다.")
-            );
-
-    // 이미 등록된 프로필이 있으면 막기
-    if (financialProfileRepository.findByUser_UserId(userId).isPresent()) {
-        throw new IllegalArgumentException("이미 등록된 금융 프로필이 있습니다.");
-    }
-
-    long availableMonthlyAmount =
-            request.getMonthlyIncome() - request.getMonthlyExpenses();
-
-    FinancialProfiles profile = FinancialProfiles.builder()
-            .user(user)
-            .occupation(request.getOccupation())
-            .incomeSource(request.getIncomeSource())
-            .monthlyIncome(request.getMonthlyIncome())
-            .monthlyExpenses(request.getMonthlyExpenses())
-            .creditLevel(request.getCreditLevel())
-            .availableMonthlyAmount(availableMonthlyAmount)
-            .emergencyFundAmount(request.getEmergencyFundAmount())
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-
-    FinancialProfiles saved =
-            financialProfileRepository.save(profile);
-
-    return toResponse(saved);
-}
 }

@@ -39,6 +39,10 @@ public class ChatSessions {
     @Builder.Default
     private ChatSessionStatus status = ChatSessionStatus.WAITING;
 
+    // 직전에 보낸 고정 안내 문구의 키(NO_PRODUCTS / DIAGNOSIS_REQUIRED / NO_GOALS 등)
+    // null이면 "대기 중인 후속 질문 없음" -> 일반 분류 흐름으로 처리
+    private String pendingContext;
+
     // TODO: A 인증 만들어서 TEMP_ADMIN_ID 대체
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="assigned_admin_id", nullable=true)
