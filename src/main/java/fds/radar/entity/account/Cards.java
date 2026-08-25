@@ -43,7 +43,7 @@ public class Cards {
     private Institutions institution;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="account_id", nullable=false)
+    @JoinColumn(name="account_id")
     private Accounts account;
 
     // 카드 번호 -> UI 표시할 때 마스킹 패턴 표시

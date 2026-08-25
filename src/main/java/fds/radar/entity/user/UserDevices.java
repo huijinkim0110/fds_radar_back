@@ -49,6 +49,15 @@ public class UserDevices {
 
     private LocalDateTime lastloginAt;
     private LocalDateTime registeredAt;
+   
+    // 신뢰 기기로 등록
+    public void trust() {
+        this.trusted = true;
+    }
 
+    // 기기 차단
+    public void block() {
+        this.blocked = true;
+    }
   
 }
