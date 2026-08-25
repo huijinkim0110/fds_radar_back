@@ -28,14 +28,15 @@ import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
 import fds.radar.dto.fraud.AdminUserResponse;
 import fds.radar.dto.fraud.AdminDashboardResponse;
-import fds.radar.entity.dispute.LockRequests;
+import fds.radar.dto.dispute.LockRequestCreateRequest;
+import fds.radar.dto.dispute.LockRequestProcessRequest;
+import fds.radar.dto.dispute.LockRequestResponse;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.fraud.FraudCaseRepository;
-import fds.radar.repository.fraud.LockRequestRepository;
 import fds.radar.repository.user.UserRepository;
-import fds.radar.service.fraud.vo.LockResult;
+import fds.radar.service.dispute.LockRequestService;
 import fds.radar.service.fraud.vo.TransactionStatusResult;
 import lombok.RequiredArgsConstructor;
 
@@ -50,8 +51,7 @@ public class FraudCaseService {
     private final FraudCaseRepository fraudCaseRepository;
     private final FraudCaseHistoryService fraudCaseHistoryService;
     private final UserRepository userRepository;
-    private final LockRequestRepository lockRequestRepository;
-    private final LockService lockService;
+    private final LockRequestService lockRequestService;
     private final TransactionStatusService transactionStatusService;
 
     // TODO: FraudCases.assignedAdminId, FraudCaseHistories.adminId가 둘 다 nullable=false라
@@ -79,7 +79,6 @@ public class FraudCaseService {
 
         Long transactionId = detectionResult.getTransaction().getTransactionId();
 
-        // 1차 방어: 같은 거래에 대해 이미 사건이 있으면 애초에 시도하지 않음 (빠른 실패, 대부분의 경우 여기서 걸러짐)
         Optional<FraudCases> existing = fraudCaseRepository.findByTransaction_TransactionId(transactionId);
         if (existing.isPresent()) {
             return existing;
@@ -102,9 +101,6 @@ public class FraudCaseService {
         try {
             saved = fraudCaseRepository.save(fraudCase);
         } catch (DataIntegrityViolationException e) {
-            // 2차 방어: 위의 존재 체크와 save() 사이에 다른 스레드/요청이 끼어들어
-            // 먼저 저장을 끝낸 경우 (진짜 동시 호출). DB unique 제약(uk_fraud_cases_transaction_id)에
-            // 걸려서 여기로 떨어지며, 이땐 새로 만들지 않고 방금 저장된 기존 사건을 그대로 반환한다.
             return fraudCaseRepository.findByTransaction_TransactionId(transactionId);
         }
 
@@ -134,7 +130,6 @@ public class FraudCaseService {
         }
     }
 
-    // 담당자 배정 드롭다운용: ADMIN 권한을 가진 사용자 목록 조회
     public java.util.List<AdminUserResponse> getAssignableAdmins() {
         return userRepository.findAll().stream()
                 .filter(u -> u.getRole() == UserRole.ADMIN)
@@ -145,7 +140,6 @@ public class FraudCaseService {
                 .toList();
     }
 
-    // 관리자 마이페이지 대시보드: 배정받은 사건 수(진행중, CLOSED 제외) + 오늘 접수된 사건 수(전체 기준) + 상태별 처리 현황 요약
     public AdminDashboardResponse getDashboard(Long adminId) {
         long assignedCaseCount = fraudCaseRepository
                 .countByAssignedAdminId_UserIdAndCaseStatusNot(adminId, CaseStatus.CLOSED);
@@ -169,20 +163,16 @@ public class FraudCaseService {
                 .build();
     }
 
-    // 관리자 마이페이지: 내 담당 사건 목록 (전체, 페이징 없음 — 개인 담당 건수라 많지 않을 것으로 가정)
     public java.util.List<FraudCaseListResponse> getMyCases(Long adminId) {
         return fraudCaseRepository.findByAssignedAdminId_UserId(adminId).stream()
                 .map(this::toListResponse)
                 .toList();
     }
 
-    // 5차: 관리자 사건 목록 조회
-    // findAll() 전체 조회는 사건이 몇만 건이면 한 번에 다 긁어와서 응답이 느려지고 메모리도 많이 먹기 때문에
-    // Pageable을 받아 페이지 단위로만 조회하도록 변경. 정렬 기준(예: 최신순)은 호출부(Pageable)에서 지정.
     public Page<FraudCaseListResponse> getCaseList(Pageable pageable) {
         Page<FraudCases> cases = fraudCaseRepository.findAll(pageable);
 
-        return cases.map(this::toListResponse); // 각각을 DTO로 변환
+        return cases.map(this::toListResponse);
     }
     
     private FraudCaseListResponse toListResponse(FraudCases fraudCase) {
@@ -197,7 +187,6 @@ public class FraudCaseService {
             .build();
     }
 
-    // 5차: 관리자 사건 상세 조회 (거래정보 + AI탐지결과 + 사건정보 + 사용자확인결과 조합)
     public FraudCaseDetailResponse getCaseDetail(Long fraudCaseId) {
     FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
@@ -243,12 +232,11 @@ public class FraudCaseService {
     fraudCase.setCaseStatus(newStatus);
     fraudCaseRepository.save(fraudCase);
 
-    // TODO(로그인 기능 붙으면 수정): 지금은 "로그인한 관리자가 누구인지" 알 방법이 없어서
-    // 임시로 사건에 배정된 담당자(assignedAdminId)를 이력 행위자로 기록함.
-    // 나중에 SecurityConfig에 JWT 인증 필터 붙고 SecurityContextHolder에서
-    // 실제 로그인한 관리자 id를 꺼낼 수 있게 되면 아래 한 줄만 교체하면 됨:
-    //   Long actingAdminId = SecurityContextHolder.getContext().getAuthentication()... (실제 로그인 관리자 id) 
-    Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
+    // 로그인 기능 반영: 프론트가 actingAdminId를 보내면 그걸 우선 사용.
+    // 아직 반영 안 된 화면 대비, 안 보내면 기존 방식(배정된 담당자)으로 fallback.
+    Long actingAdminId = request.getActingAdminId() != null
+            ? request.getActingAdminId()
+            : fraudCase.getAssignedAdminId().getUserId();
 
     fraudCaseHistoryService.record(
             fraudCase,
@@ -260,7 +248,6 @@ public class FraudCaseService {
         );
     }
 
-    // 접수→조사중, 조사중→종결 순서만 허용 (역행/건너뛰기 차단) (from=oldStatus, to=newStatus)
     private void validateStatusTransition(CaseStatus from, CaseStatus to) {
         if (from == to) {
             throw new IllegalStateException("이미 " + from + "상태입니다.");
@@ -293,15 +280,18 @@ public class FraudCaseService {
         fraudCase.setAssignedAdminId(newAdmin);
         fraudCaseRepository.save(fraudCase);
 
-        // TODO(로그인 기능 붙으면 수정): 배정 "행위자"도 원래는 로그인한 관리자여야 하지만,
-        // 지금은 로그인 정보가 없어 새로 배정된 관리자 본인을 행위자로 기록.
+        // 배정을 실행한(로그인한) 관리자 우선, 없으면 기존처럼 새로 배정된 관리자 본인으로 fallback
+        Long actingAdminId = request.getActingAdminId() != null
+                ? request.getActingAdminId()
+                : newAdmin.getUserId();
+
         fraudCaseHistoryService.record(
             fraudCase,
             FraudActionType.INVESTIGATE,
             fraudCase.getCaseStatus(),
             fraudCase.getCaseStatus(),
             "담당자가 '" + previousAdmin.getName() + "'에서 '" + newAdmin.getName() + "'(으)로 변경되었습니다.",
-            newAdmin.getUserId()
+            actingAdminId
         );
     }
 
@@ -315,8 +305,6 @@ public class FraudCaseService {
         fraudCase.setConfirmation(confirmation);
         fraudCaseRepository.save(fraudCase);
 
-         // 본인거래 확인은 관리자가 아니라 사건 당사자(user)가 하는 행동이라
-        // 이력의 행위자도 관리자가 아닌 그 사건의 user로 기록.
         Long actingUserId = fraudCase.getUser().getUserId();
 
         fraudCaseHistoryService.record(
@@ -329,7 +317,7 @@ public class FraudCaseService {
         );
     }
 
-    // 8차: 카드/계좌 잠금 요청 처리
+    // 8차: 카드/계좌 잠금 요청 처리 — 실제 LockRequestService 연동 (C 구현)
     public void requestLock(Long fraudCaseId, FraudLockRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
@@ -338,37 +326,47 @@ public class FraudCaseService {
             throw new IllegalStateException("이미 종결된 사건에는 잠금을 요청할 수 없습니다.");
         }
 
-        Users targetUser = fraudCase.getUser();
-        
-        // 1) 잠금 요청 기록 생성 (일단 RECEIVED 상태로)
-        LockRequests lockRequest = LockRequests.builder()
-                .fraudCase(fraudCase)
-                .user(targetUser)
+        // 1) 잠금 요청 생성(RECEIVED) — LockRequestService의 fraud_case 기반 생성 로직을 그대로 재사용.
+        //    LockRequests 엔티티 생성/저장은 LockRequestService 내부에서만 하고, 여기서는 중복으로 만들지 않는다.
+        LockRequestCreateRequest createRequest = LockRequestCreateRequest.builder()
+                .farudCaseId(fraudCaseId)
                 .targetType(request.getTargetType())
                 .requestReason(request.getRequestReason())
-                .requestStatus(LockRequestStatus.RECEIVED)
-                .requestedAt(LocalDateTime.now())
                 .build();
-        lockRequestRepository.save(lockRequest);
+        LockRequestResponse createdLock = lockRequestService.createFromFraudCase(createRequest);
 
-        // 2) 실제 잠금 처리 위임 (지금은 MockLockService가 항상 success=true 반환)
-        LockResult result = lockService.lock(request.getTargetType(), targetUser.getUserId());
+        // 2) 관리자가 사건에서 즉시 잠금을 요청한 것이므로, 생성과 동시에 승인(COMPLETED) 처리까지 한 번에 진행.
+        //    LockRequestService.process()가 내부적으로 실제 카드/계좌 상태를 변경(applyLock)한다.
+        //    대상(카드/계좌)을 찾지 못하는 등 처리 중 실패하면 요청을 REJECTED로 마감한다.
+        boolean success;
+        String failureMessage = null;
+        try {
+            lockRequestService.process(createdLock.getId(),
+                    LockRequestProcessRequest.builder()
+                            .requestStatus(LockRequestStatus.COMPLETED)
+                            .build());
+            success = true;
+        } catch (RuntimeException e) {
+            lockRequestService.process(createdLock.getId(),
+                    LockRequestProcessRequest.builder()
+                            .requestStatus(LockRequestStatus.REJECTED)
+                            .build());
+            success = false;
+            failureMessage = e.getMessage();
+        }
 
-        // 3) 처리 결과에 따라 요청 상태 갱신
-        lockRequest.setRequestStatus(result.isSuccess() ? LockRequestStatus.COMPLETED : LockRequestStatus.REJECTED);
-        lockRequest.setProcessedAt(LocalDateTime.now());
-        lockRequestRepository.save(lockRequest);
-
-        // TODO(로그인 기능 붙으면 수정): 지금은 사건 담당 관리자를 행위자로 임시 기록
-        Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
+        // 잠금을 요청한(로그인한) 관리자 우선, 없으면 기존처럼 사건 담당 관리자로 fallback
+        Long actingAdminId = request.getActingAdminId() != null
+                ? request.getActingAdminId()
+                : fraudCase.getAssignedAdminId().getUserId();
 
         fraudCaseHistoryService.record(
             fraudCase,
             FraudActionType.LOCK,
             fraudCase.getCaseStatus(),
-            fraudCase.getCaseStatus(), // 잠금은 사건 상태(RECEIVED/INVESTIGATING/CLOSED) 자체를 안 바꿈
+            fraudCase.getCaseStatus(),
             targetTypeText(request.getTargetType()) + " 잠금 요청이 "
-                    + (result.isSuccess() ? "정상적으로 처리되었습니다." : "처리에 실패했습니다."),
+                    + (success ? "정상적으로 처리되었습니다." : "처리에 실패했습니다: " + failureMessage),
             actingAdminId
         );
     }
@@ -378,7 +376,6 @@ public class FraudCaseService {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
 
-        // 조사가 끝나지 않은 사건을 실수로 종결시키는 걸 방지
         if (fraudCase.getCaseStatus() != CaseStatus.INVESTIGATING) {
             throw new IllegalStateException(
                 "조사중 상태의 사건만 최종 판정할 수 있습니다. 현재 상태: " + fraudCase.getCaseStatus());
@@ -389,7 +386,6 @@ public class FraudCaseService {
                 ? TransactionStatus.CANCELED 
                 : TransactionStatus.APPROVED;
 
-        // 거래 상태 변경 위임 (지금은 MockTransactionStatusService가 실제로 DB 반영까지 함)
         TransactionStatusResult result = transactionStatusService.updateStatus(
                 fraudCase.getTransaction().getTransactionId(), targetStatus);
             
