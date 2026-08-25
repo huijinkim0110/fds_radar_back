@@ -14,4 +14,5 @@ import lombok.Setter;
 @Builder
 public class FraudCaseStatusRequest {
     private CaseStatus caseStatus;
+    private Long actingAdminId; // 로그인 붙기 전까지는 프론트에서 명시적으로 전달
 }

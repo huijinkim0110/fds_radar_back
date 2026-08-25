@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class FraudLockRequest {
-    private RequestTargetType targetType; // CARD 또는 ACCOUNT
-    private String requestReason;         // 잠금 사유 (관리자가 입력)
+    private RequestTargetType targetType;
+    private String requestReason;
+    private Long actingAdminId; // 잠금 요청을 실행한(로그인한) 관리자
 }
