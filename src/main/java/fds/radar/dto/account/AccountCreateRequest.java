@@ -2,7 +2,7 @@ package fds.radar.dto.account;
 
 import java.math.BigDecimal;
 
-import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -10,8 +10,11 @@ public class AccountCreateRequest {
    @Size(max = 30, message = "계좌 별칭은 최대 30자입니다.")
    private String accountName;
 
+   @NotNull(message = "금융기간은 필수입니다.")
+   private Long institutionId;
+   
    @NotNull(message = "일일 이체한도는 필수입니다.")
-   @DecimalMax(value = "0", message = "일일 이체한도는 0 이상이어야 합니다.")
+   @DecimalMin(value = "0", message = "일일 이체한도는 0 이상이어야 합니다.")
    private BigDecimal dailyTransferLimit;
 
    public AccountCreateRequest() {}
@@ -28,4 +31,8 @@ public class AccountCreateRequest {
     public BigDecimal getDailyTransferLimit() {
         return dailyTransferLimit;
     }
+
+    public Long getInstitutionId() {
+        return institutionId;
+    } 
 }

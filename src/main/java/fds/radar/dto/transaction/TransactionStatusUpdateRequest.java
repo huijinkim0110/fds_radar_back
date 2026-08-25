@@ -1,7 +1,7 @@
 package fds.radar.dto.transaction;
 
-import org.springframework.transaction.TransactionStatus;
 
+import fds.radar.common.TransactionStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

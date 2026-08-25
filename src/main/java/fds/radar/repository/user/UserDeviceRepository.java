@@ -8,7 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import fds.radar.entity.user.UserDevices;
 
 public interface UserDeviceRepository extends JpaRepository<UserDevices, Long> {
+
     List<UserDevices> findByUser_UserId(Long userId);
-    Optional<UserDevices> findByUser_UserIdAndDeviceId(String userId, String deviceId);
-    
+
+    Optional<UserDevices> findByUser_UserIdAndDeviceIdentifier(
+            Long userId,
+            String deviceIdentifier
+    );
 }
