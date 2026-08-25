@@ -84,6 +84,15 @@ public class ChatService {
         return toMessageDTO(saved);
     }
 
+    // 세션의 pendingContext 갱신(고정 문구 전송 시 세팅, 후속 답변 처리 후 해제)
+    @Transactional
+    public void updatePendingContext(Long sessionId, String pendingContext) {
+        ChatSessions session = chatSessionsRepository.findById(sessionId)
+                                                     .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+
+        session.setPendingContext(pendingContext);
+    }
+
     // 관리자가 세션 열람 - WAITING -> IN_PROGRESS 전환
     @Transactional
     public void markInProgress(Long sessionId, Long adminId) {
@@ -120,6 +129,7 @@ public class ChatService {
                                      .sessionId(session.getSessionId())
                                      .userId(session.getUser().getUserId())
                                      .status(session.getStatus())
+                                     .pendingContext(session.getPendingContext())
                                      .createdAt(session.getCreatedAt())
                                      .closedAt(session.getClosedAt())
                                      .messages(messages)
