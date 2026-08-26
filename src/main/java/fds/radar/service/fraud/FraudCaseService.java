@@ -68,20 +68,30 @@ public class FraudCaseService {
     @Value("${fraud.priority.high-min}")
     private java.math.BigDecimal highMin;
 
-    /**
-     * 4차: 탐지결과의 이상확률이 threshold 이상이면 FraudCase를 자동 생성한다.
-     * threshold 미만이면 아무것도 하지 않고 Optional.empty() 반환.
-     */
+    // 기존 createCaseIfNeeded()를 아래처럼 교체하고, getOrCreateCase/buildAutoDetectMessage 두 개를 새로 추가
+
     public Optional<FraudCases> createCaseIfNeeded(FraudDetectionResults detectionResult) {
         if (detectionResult.getFraudProbability().compareTo(threshold) < 0) {
             return Optional.empty();
         }
+        return Optional.of(getOrCreateCase(detectionResult, buildAutoDetectMessage(detectionResult)));
+    }
 
+    /**
+     * 신고(FraudReport) 접수 시, threshold 미만이라 자동 생성되지 않았던 거래(=AI가 정상 판단한 거래)에
+     * 대해 사건을 생성한다. createCaseIfNeeded()와 달리 확률 조건 없이 무조건 생성(또는 기존 것 반환)한다.
+     * FraudReportService에서, 신고 대상 거래에 연결된 FraudCase가 없을 때 호출하는 용도.
+     */
+    public FraudCases createCaseFromReport(FraudDetectionResults detectionResult) {
+        return getOrCreateCase(detectionResult, "사용자 신고(사후 신고)로 인해 사건이 생성되었습니다.");
+    }
+
+    private FraudCases getOrCreateCase(FraudDetectionResults detectionResult, String historyMessage) {
         Long transactionId = detectionResult.getTransaction().getTransactionId();
 
         Optional<FraudCases> existing = fraudCaseRepository.findByTransaction_TransactionId(transactionId);
         if (existing.isPresent()) {
-            return existing;
+            return existing.get();
         }
 
         CasePriority priority = calculatePriority(detectionResult.getFraudProbability());
@@ -101,23 +111,23 @@ public class FraudCaseService {
         try {
             saved = fraudCaseRepository.save(fraudCase);
         } catch (DataIntegrityViolationException e) {
-            return fraudCaseRepository.findByTransaction_TransactionId(transactionId);
+            return fraudCaseRepository.findByTransaction_TransactionId(transactionId)
+                    .orElseThrow(() -> e);
         }
 
+        fraudCaseHistoryService.record(
+                saved, FraudActionType.HOLD, null, CaseStatus.RECEIVED,
+                historyMessage, SYSTEM_ADMIN_ID
+        );
+
+        return saved;
+    }
+
+    private String buildAutoDetectMessage(FraudDetectionResults detectionResult) {
         String probabilityPercent = detectionResult.getFraudProbability()
                 .multiply(new java.math.BigDecimal("100"))
                 .setScale(0, java.math.RoundingMode.HALF_UP) + "%";
-        
-        fraudCaseHistoryService.record(
-                saved,
-                FraudActionType.HOLD,
-                null,
-                CaseStatus.RECEIVED,
-                "AI 탐지 결과 이상거래 가능성이 높게 나타나(이상확률 " + probabilityPercent + ") 사건이 자동 생성되었습니다.",
-                SYSTEM_ADMIN_ID
-        );
-
-        return Optional.of(saved);
+        return "AI 탐지 결과 이상거래 가능성이 높게 나타나(이상확률 " + probabilityPercent + ") 사건이 자동 생성되었습니다.";
     }
 
     private CasePriority calculatePriority(java.math.BigDecimal probability) {
@@ -215,6 +225,7 @@ public class FraudCaseService {
             .openedAt(fraudCase.getOpenedAt())
             .closedAt(fraudCase.getClosedAt())
             .transactionId(fraudCase.getTransaction().getTransactionId())
+            .transactionType(fraudCase.getTransaction().getTransactionType())   // 이 줄 추가
             .detection(detection)
             .build();
     }
