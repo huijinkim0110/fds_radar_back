@@ -9,6 +9,7 @@ import fds.radar.common.FraudDecision;
 import fds.radar.common.PredictedFraudType;
 import fds.radar.common.PredictedResult;
 import fds.radar.common.UserConfirmation;
+import fds.radar.common.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,8 +31,9 @@ public class FraudCaseDetailResponse {
     private LocalDateTime openedAt;
     private LocalDateTime closedAt;
 
-    // TODO: Transactions 필드가 더 필요해지면 이 안에 확장 (지금은 id만)
+    // TODO: Transactions 필드가 더 필요해지면 이 안에 확장
     private Long transactionId;
+    private TransactionType transactionType;   // 신규: 잠금 대상 자동 판단용
 
     private DetectionSummary detection; // 탐지 관련은 여기 안에 묶음 (중첩 클래스)
 
