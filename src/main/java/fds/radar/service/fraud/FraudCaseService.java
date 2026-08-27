@@ -207,6 +207,11 @@ public class FraudCaseService {
     private FraudCaseDetailResponse toDetailResponse(FraudCases fraudCase) {
     FraudDetectionResults detectionResult = fraudCase.getDetectionResult();
 
+    // threshold 미만인데 사건이 존재하면 신고로 생성된 것
+    String origin = detectionResult.getFraudProbability().compareTo(threshold) < 0
+        ? "USER_REPORT"
+        : "AI_DETECTION";
+
     FraudCaseDetailResponse.DetectionSummary detection = FraudCaseDetailResponse.DetectionSummary.builder()
             .detectionResultId(detectionResult.getDetectionResultId())
             .fraudProbability(detectionResult.getFraudProbability())
@@ -218,7 +223,6 @@ public class FraudCaseService {
     return FraudCaseDetailResponse.builder()
             .fraudCaseId(fraudCase.getFraudCaseId())
             .caseStatus(fraudCase.getCaseStatus())
-            .priority(fraudCase.getPriority())
             .confirmation(fraudCase.getConfirmation())
             .fraudDecision(fraudCase.getFraudDecision())
             .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
@@ -227,6 +231,8 @@ public class FraudCaseService {
             .transactionId(fraudCase.getTransaction().getTransactionId())
             .transactionType(fraudCase.getTransaction().getTransactionType())   // 이 줄 추가
             .detection(detection)
+            .priority(fraudCase.getPriority())
+            .origin(origin)
             .build();
     }
 
