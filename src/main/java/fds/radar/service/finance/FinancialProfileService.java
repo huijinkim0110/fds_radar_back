@@ -100,7 +100,11 @@ public class FinancialProfileService {
         profile.setIncomeSource(request.getIncomeSource());
         profile.setMonthlyIncome(request.getMonthlyIncome());
         profile.setMonthlyExpenses(request.getMonthlyExpenses());
-        profile.setCreditLevel(request.getCreditLevel());
+        if (request.getCreditLevel() != null) {
+                profile.setCreditLevel(request.getCreditLevel());
+        } else if (profile.getCreditLevel() == null) {
+                profile.setCreditLevel(5);
+        }
         profile.setAvailableMonthlyAmount(availableMonthlyAmount);
         profile.setEmergencyFundAmount(request.getEmergencyFundAmount());
         profile.setUpdatedAt(LocalDateTime.now());
