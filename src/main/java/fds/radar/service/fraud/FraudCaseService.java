@@ -346,7 +346,7 @@ public class FraudCaseService {
         // 1) 잠금 요청 생성(RECEIVED) — LockRequestService의 fraud_case 기반 생성 로직을 그대로 재사용.
         //    LockRequests 엔티티 생성/저장은 LockRequestService 내부에서만 하고, 여기서는 중복으로 만들지 않는다.
         LockRequestCreateRequest createRequest = LockRequestCreateRequest.builder()
-                .farudCaseId(fraudCaseId)
+                .fraudCaseId(fraudCaseId)
                 .targetType(request.getTargetType())
                 .requestReason(request.getRequestReason())
                 .build();
