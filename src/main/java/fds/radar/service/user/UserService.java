@@ -42,7 +42,7 @@ public class UserService {
         try {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             format.setLenient(false);
-            birthDate = format.parse(request.getBirthDete());
+            birthDate = format.parse(request.getBirthDate());
 
         } catch (ParseException e) {
             throw new IllegalArgumentException(
