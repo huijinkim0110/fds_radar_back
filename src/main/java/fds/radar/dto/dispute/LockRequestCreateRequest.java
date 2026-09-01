@@ -13,7 +13,7 @@ import lombok.Setter;
 public class LockRequestCreateRequest {
     
     @NotNull(message = "fraudCardId는 필수입니다.")
-    private Long farudCaseId;
+    private Long fraudCaseId;
 
     @NotNull(message = "잠금 대상 종류는 필수입니다.")
     private RequestTargetType targetType;
@@ -28,7 +28,7 @@ public class LockRequestCreateRequest {
     
     public LockRequestCreateRequest() {}
 
-    public Long getFraudCaseId() {return farudCaseId;}
+    public Long getFraudCaseId() {return fraudCaseId;}
     public RequestTargetType getTargetType() {return targetType;}
     public String getRequestReason() {return requestReason;}
 }
