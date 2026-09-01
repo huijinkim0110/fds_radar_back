@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.dto.fraud.FraudAnalysisStatsResponse;
 import fds.radar.dto.fraud.FraudCaseListResponse;
 import fds.radar.service.fraud.FraudAnalysisService;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,11 @@ public class FraudAnalysisController {
     @GetMapping("/false-negatives")
     public ResponseEntity<List<FraudCaseListResponse>> getFalseNegatives() {
         return ResponseEntity.ok(fraudAnalysisService.getFalseNegatives());
+    }
+
+    // 신규: 이상거래 분석 통계 (AdminFraudAnalysis.jsx)
+    @GetMapping("/stats")
+    public ResponseEntity<FraudAnalysisStatsResponse> getStats() {
+        return ResponseEntity.ok(fraudAnalysisService.getStats());
     }
 }
