@@ -39,9 +39,13 @@ public class FraudDetectionService {
         TransactionData transactionData = toTransactionData(transaction);
         FraudPrediction prediction = fraudModelService.predict(transactionData);
 
+        String algorithm = transaction.getTransactionType() == fds.radar.common.TransactionType.CARD_PAYMENT
+                ? "AutoML"
+                : "HistGradientBoostingClassifier";
+
         AiModels model = aiModelRepository
-                .findFirstByModelTypeAndActiveTrueOrderByRegisteredAtDesc(ModelType.FRAUD_DETECTION)
-                .orElseThrow(() -> new IllegalStateException("운영 중(active=true)인 이상거래 탐지 모델이 없습니다."));
+                .findFirstByModelTypeAndAlgorithmAndActiveTrueOrderByRegisteredAtDesc(ModelType.FRAUD_DETECTION, algorithm)
+                .orElseThrow(() -> new IllegalStateException("운영 중(active=true)인 이상거래 탐지 모델이 없습니다. type=" + transaction.getTransactionType()));
 
         FraudDetectionResults saved = fraudDetectionResultRepository.save(
                 FraudDetectionResults.builder()

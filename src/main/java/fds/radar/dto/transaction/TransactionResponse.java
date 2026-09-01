@@ -44,7 +44,7 @@ public class TransactionResponse {
         );
     }
 
-    public Long gettransactionId() { return transactionId; }
+    public Long getTransactionId() { return transactionId; } // [D파트 담당자 수정] 대소문자 수정
     public TransactionType getTransactionType() { return transactionType; }
     public BigDecimal getAmount() { return amount; }
     public TransactionChannel getChannel() { return channel; }
