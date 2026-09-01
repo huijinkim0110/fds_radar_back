@@ -27,6 +27,11 @@ public class FinancialProfileController {
         return ResponseEntity.ok(financialProfileService.hasProfile(userId));
     }
 
+    @GetMapping
+    public ResponseEntity<FinancialProfileResponse> getProfile(@RequestParam Long userId) {
+        return ResponseEntity.ok(financialProfileService.getProfile(userId));
+    }
+
     // 있으면 수정, 없으면 등록
     @PostMapping
     public ResponseEntity<FinancialProfileResponse> upsertProfile(@RequestBody FinancialProfileRequest dto) {
