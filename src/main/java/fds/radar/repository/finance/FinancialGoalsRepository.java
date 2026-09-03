@@ -17,4 +17,7 @@ public interface FinancialGoalsRepository extends JpaRepository<FinancialGoals, 
 
     // 여러 목표 중 진행 중(IN_PROGRESS 상태의 가장 최근 목표 1건 - 추천/적합성 검사 자동 반영용
     Optional<FinancialGoals> findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(Long userId, GoalStatus goalStatus);
+
+    // 본인 소유 목표 검증용 - 모의가입 연동 시 타인 목표 연결 차단
+    Optional<FinancialGoals> findByGoalIdAndUser_UserId(Long goalId, Long userId);
 }
