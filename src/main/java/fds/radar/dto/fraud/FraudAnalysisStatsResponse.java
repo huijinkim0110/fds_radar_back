@@ -19,6 +19,7 @@ public class FraudAnalysisStatsResponse {
     private long monthlyDetectionCount;          // 이번 달 탐지 건수
     private long blockedCount;                   // 차단 처리 (종결 + 사기 확정)
     private long falsePositiveCount;              // 오탐(정상판정)
+    private long falseNegativeCount;              // 미탐(AI는 정상, 사후 사기 확정) — 추가
     private BigDecimal averageFraudProbability;   // 평균 AI점수
 
     private List<DailyCount> daily;   // 최근 7일 추이
