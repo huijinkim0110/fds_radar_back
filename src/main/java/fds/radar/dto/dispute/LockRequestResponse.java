@@ -36,7 +36,8 @@ public class LockRequestResponse {
             lock.getTargetType(),
             lock.getRequestReason(),
             lock.getRequestStatus(),
-            lock.getFraudCase().getFraudCaseId(),
+            // [D파트 담당자 수정] 유저가 직접 요청한 잠금(requestByUser)은 fraudCase가 null이라 NPE 발생 → null 체크 추가
+            lock.getFraudCase() != null ? lock.getFraudCase().getFraudCaseId() : null,
             lock.getRequestedAt(),
             lock.getProcessedAt()
         );
