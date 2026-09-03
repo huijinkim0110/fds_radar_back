@@ -35,16 +35,12 @@ public class RecommendationResults {
     private Users user;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="goal_id", nullable=false)
+    @JoinColumn(name="goal_id", nullable=true)
     private FinancialGoals goal;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="investment_profile_id", nullable=false)
     private InvestmentProfiles investmentProfile;
-
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="model_id", nullable=false)
-    private AiModels model;
     
     private LocalDateTime requestedAt;
     private LocalDateTime completedAt;
