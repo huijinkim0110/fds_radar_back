@@ -15,7 +15,6 @@ import fds.radar.dto.user.LoginResponse;
 import fds.radar.dto.user.SignUpRequest;
 import fds.radar.dto.user.SignUpResponse;
 import fds.radar.dto.user.UserProfileResponse;
-import fds.radar.dto.user.UserProfileResponse;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.user.UserRepository;
 import fds.radar.service.security.JwtTokenProvider;
