@@ -1,12 +1,17 @@
 package fds.radar.controller.fraud;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.dto.fraud.FraudCaseListResponse;
 import fds.radar.dto.fraud.FraudConfirmationRequest;
 import fds.radar.service.fraud.FraudCaseService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,14 @@ import lombok.RequiredArgsConstructor;
 public class FraudCaseController {
 
     private final FraudCaseService fraudCaseService;
+
+    // 유저 본인의 이상거래 목록 조회
+    // TODO(로그인 기능 붙으면 수정): 지금은 userId를 쿼리 파라미터로 임시로 받음.
+    // 나중엔 SecurityContextHolder에서 로그인한 유저 id를 꺼내는 방식으로 교체.
+    @GetMapping
+    public ResponseEntity<List<FraudCaseListResponse>> getMyFraudCases(@RequestParam Long userId) {
+        return ResponseEntity.ok(fraudCaseService.getMyCases(userId));
+    }
 
     // 6차: 사용자가 본인거래 여부(MINE/NOT_MINE/UNCONFIRMED)를 직접 응답
     @PatchMapping("/{fraudCaseId}/confirmation")

@@ -17,12 +17,15 @@ public class TransactionResponse {
     private TransactionStatus status;
     private LocalDateTime occurredAt;
     private LocalDateTime approvedAt;
+    private String merchantName;   // 카드결제일 때만 값 있음
+    private String recipientName;  // 계좌이체일 때만 값 있음
 
     public TransactionResponse() {}
 
     public TransactionResponse(Long transactionId, TransactionType transactionType, BigDecimal amount,
                                TransactionChannel channel, TransactionStatus status,
-                               LocalDateTime occurredAt, LocalDateTime approvedAt) {
+                               LocalDateTime occurredAt, LocalDateTime approvedAt,
+                               String merchantName, String recipientName) {
         this.transactionId = transactionId;
         this.transactionType = transactionType;
         this.amount = amount;
@@ -30,6 +33,8 @@ public class TransactionResponse {
         this.status = status;
         this.occurredAt = occurredAt;
         this.approvedAt = approvedAt;
+        this.merchantName = merchantName;
+        this.recipientName = recipientName;
     }
 
     public static TransactionResponse from(Transactions tx) {
@@ -40,7 +45,9 @@ public class TransactionResponse {
             tx.getTransactionChannel(),
             tx.getTransactionStatus(),
             tx.getOccurredAt(),
-            tx.getApprovedAt()
+            tx.getApprovedAt(),
+            tx.getMerchant() != null ? tx.getMerchant().getMerchantName() : null,
+            tx.getRecipient() != null ? tx.getRecipient().getRecipientName() : null
         );
     }
 
@@ -51,4 +58,6 @@ public class TransactionResponse {
     public TransactionStatus getStatus() { return status; }
     public LocalDateTime getOccurredAt() { return occurredAt; }
     public LocalDateTime getApprovedAt() { return approvedAt; }
+    public String getMerchantName() { return merchantName; }
+    public String getRecipientName() { return recipientName; }
 }
