@@ -209,7 +209,7 @@ public class FraudCaseService {
             .openedAt(fraudCase.getOpenedAt())
             .merchantName(merchant != null ? merchant.getMerchantName() : "-")
             .amount(transaction.getAmount())
-            .transactionType(transaction.getTransactionType().toString())
+            .transactionType(transaction.getTransactionType())
             .confirmation(fraudCase.getConfirmation())
             .transactionOccurredAt(transaction.getOccurredAt())
             .build();
