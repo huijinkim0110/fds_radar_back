@@ -19,7 +19,7 @@ public class SignUpRequest {
     private String name;
 
     @NotBlank(message = "생년월일은 필수입니다.")
-    private String birthDete;
+    private String birthDate;
 
     @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(
@@ -42,8 +42,8 @@ public class SignUpRequest {
         return name;
     }
 
-    public String getBirthDete() {
-        return birthDete;
+    public String getBirthDate() {
+        return birthDate;
     }
 
     public String getPhoneNumber() {

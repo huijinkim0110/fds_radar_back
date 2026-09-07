@@ -32,6 +32,10 @@ public interface FraudCaseRepository extends JpaRepository<FraudCases, Long> {
     // 관리자 마이페이지 대시보드: 처리 현황 요약용 — 상태별 개수 조회
     long countByAssignedAdminId_UserIdAndCaseStatus(Long adminId, CaseStatus caseStatus);
 
+
+    // 유저 본인의 이상거래 목록 조회
+    List<FraudCases> findByUser_UserId(Long userId);
+
     // 관리자 마이페이지 대시보드: 오늘 접수된 사건 수 (배정자 무관, 전체 기준)
     long countByOpenedAtGreaterThanEqual(LocalDateTime openedAt);
 

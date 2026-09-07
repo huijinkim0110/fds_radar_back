@@ -11,10 +11,10 @@ import fds.radar.common.RequestStatus;
 import fds.radar.dto.dispute.DisputeRequest;
 import fds.radar.dto.dispute.DisputeRequestResponse;
 import fds.radar.entity.dispute.DisputeRequests;
-import fds.radar.entity.dispute.FraudReports;
+import fds.radar.entity.transaction.Transactions; // 추가
 import fds.radar.entity.user.Users;
 import fds.radar.repository.dispute.DisputeRequestRepository;
-import fds.radar.repository.fraud.FraudReportRepostitory;
+import fds.radar.repository.transaction.TransactionRepository; // 추가
 import fds.radar.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class DisputeRequestService {
     
     private final DisputeRequestRepository disputeRequestRepository;
-    private final FraudReportRepostitory fraudReportRepostitory;
+    private final TransactionRepository transactionRepository; // 1. TransactionRepository 추가
     private final UserRepository userRepository;
 
     // 이의제기 신청
@@ -39,27 +39,27 @@ public class DisputeRequestService {
                     )
                 );
 
-        FraudReports fraudReport = fraudReportRepostitory
-                .findById(request.getFraudReportId())
+        // 2. FraudReport 대신 Transaction 조회
+        Transactions transaction = transactionRepository.findById(request.getTransactionId())
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
-                            "신고 내역을 찾을 수 없습니다."
+                            "거래 내역을 찾을 수 없습니다."
                     )
-            );
+                );
         
+        // 3. DisputeRequests 엔티티 생성 시 조회한 Transaction 설정
         DisputeRequests disputeRequests = DisputeRequests.builder()
                 .user(user)
-                .transaction(fraudReport.getTransaction())
-                .fraudReport(fraudReport)
-                .disputeType(request.getDisputeType())
+                .transaction(transaction)
+                .disputeType(request.getReason()) // 프론트에서 넘어온 reason 값 바인딩
                 .requestReason(request.getReason())
                 .requestStatus(RequestStatus.RECEIVED)
                 .requestedAt(LocalDateTime.now())
                 .build();
 
-            disputeRequestRepository.save(disputeRequests);
+        disputeRequestRepository.save(disputeRequests);
 
-            return toResponse(disputeRequests);
+        return toResponse(disputeRequests);
     }
 
     // 사용자의 전체 이의제기 조회
@@ -87,7 +87,7 @@ public class DisputeRequestService {
         return toResponse(disputeRequest);
     }
 
-     // 관리자 승인
+    // 관리자 승인
     @Transactional
     public DisputeRequestResponse approve(Long disputeRequestId) {
 
@@ -130,7 +130,7 @@ public class DisputeRequestService {
         return toResponse(disputeRequest);
     }
 
-     // Entity -> Response 변환
+    // Entity -> Response 변환
     private DisputeRequestResponse toResponse(
             DisputeRequests disputeRequest) {
 
