@@ -33,7 +33,7 @@ public class FraudCaseController {
     // 나중엔 SecurityContextHolder에서 로그인한 유저 id를 꺼내는 방식으로 교체.
     @GetMapping
     public ResponseEntity<List<FraudCaseListResponse>> getMyFraudCases(@RequestParam Long userId) {
-        return ResponseEntity.ok(fraudCaseService.getMyCases(userId));
+        return ResponseEntity.ok(fraudCaseService.getMyFraudCases(userId));
     }
 
     // 6차: 사용자가 본인거래 여부(MINE/NOT_MINE/UNCONFIRMED)를 직접 응답
