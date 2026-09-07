@@ -57,6 +57,10 @@ public class FraudAnalysisService {
         long falsePositiveCount = fraudCaseRepository.findByDetectionResult_PredictedResultAndFraudDecision(
                 PredictedResult.FRAUD, FraudDecision.NORMAL).size();
 
+        // 추가: 미탐 — getFalseNegatives()와 같은 조건, 개수만 필요해서 재사용
+        long falseNegativeCount = fraudCaseRepository.findByDetectionResult_PredictedResultAndFraudDecision(
+                PredictedResult.NORMAL, FraudDecision.FRAUD).size();
+
         BigDecimal avgProbability = fraudCaseRepository.findAverageFraudProbability();
         if (avgProbability == null) {
             avgProbability = BigDecimal.ZERO;
@@ -82,6 +86,7 @@ public class FraudAnalysisService {
                 .monthlyDetectionCount(monthlyDetectionCount)
                 .blockedCount(blockedCount)
                 .falsePositiveCount(falsePositiveCount)
+                .falseNegativeCount(falseNegativeCount)
                 .averageFraudProbability(avgProbability)
                 .daily(daily)
                 .types(types)
@@ -112,6 +117,7 @@ public class FraudAnalysisService {
         return FraudCaseListResponse.builder()
                 .fraudCaseId(fraudCase.getFraudCaseId())
                 .transactionId(fraudCase.getTransaction().getTransactionId())
+                .transactionType(fraudCase.getTransaction().getTransactionType())  // 추가
                 .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
                 .priority(fraudCase.getPriority())
                 .caseStatus(fraudCase.getCaseStatus())

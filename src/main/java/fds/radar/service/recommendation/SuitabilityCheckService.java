@@ -9,15 +9,18 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import fds.radar.common.GoalStatus;
 import fds.radar.common.PreferredPeriod;
 import fds.radar.common.RiskLevel;
 import fds.radar.common.RiskTendency;
 import fds.radar.common.SuitabilityResult;
 import fds.radar.dto.recommendation.SuitabilityCheckRequestDTO;
+import fds.radar.entity.finance.FinancialGoals;
 import fds.radar.entity.finance.InvestmentProfiles;
 import fds.radar.entity.financialProduct.FinancialProducts;
 import fds.radar.entity.recommendation.SuitabilityChecks;
 import fds.radar.entity.user.Users;
+import fds.radar.repository.finance.FinancialGoalsRepository;
 import fds.radar.repository.financialProduct.FinancialProductsRepository;
 import fds.radar.repository.recommendation.SuitabilityChecksRepository;
 import fds.radar.repository.user.UserRepository;
@@ -32,6 +35,7 @@ public class SuitabilityCheckService {
     private final FinancialProductsRepository financialProductsRepository;
     private final UserRepository userRepository;
     private final InvestmentProfileService investmentProfileService;
+    private final FinancialGoalsRepository financialGoalsRepository;
 
     // 투자성향별 허용 위험등급 매핑
     private static final Map<RiskTendency, Set<RiskLevel>> RISK_TENDENCY_MAP = Map.of(
@@ -67,6 +71,15 @@ public class SuitabilityCheckService {
         boolean principalProtectionMatch = checkPrincipalProtectionMatch(profile.isPrincipalProtectionPreference(), product.isPrincipalProtection());
         boolean amountMatch = true; // 금액 검사는 가입 단계로 넘기기
 
+        // 재무목표 참고 정보(판정에는 영향 없음)
+        FinancialGoals goal = financialGoalsRepository
+            .findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(dto.getUserId(), GoalStatus.IN_PROGRESS)
+            .orElse(null);
+        Integer goalMonths = resolveGoalMonths(goal, profile.getPreferredPeriod());
+        Boolean goalPeriodMatch = (goal == null) ? null
+            : (goalMonths == null || product.getSubscriptionPeriod() == null || product.getSubscriptionPeriod() <= goalMonths);
+        String goalNote = buildGoalNote(goal, goalPeriodMatch);
+
         SuitabilityResult result = (riskMatch && periodMatch && principalProtectionMatch)
             ? SuitabilityResult.SUITABLE
             : SuitabilityResult.UNSUITABLE;
@@ -80,6 +93,8 @@ public class SuitabilityCheckService {
                                                    .periodMatch(periodMatch)
                                                    .amountMatch(amountMatch)
                                                    .principalProtectionMatch(principalProtectionMatch)
+                                                   .goalPeriodMatch(goalPeriodMatch)
+                                                   .goalNote(goalNote)
                                                    .suitabilityResult(result)
                                                    .checkReason(reason)
                                                    .checkedAt(LocalDateTime.now())
@@ -92,6 +107,29 @@ public class SuitabilityCheckService {
     @Transactional(readOnly=true)
     public List<SuitabilityChecks> getCheckHistory(Long userId, Long productId) {
         return suitabilityChecksRepository.findByUser_UserIdAndProduct_ProductIdOrderByCheckedAtDesc(userId, productId);
+    }
+
+    // 재무목표 있으면 목표까지 남은 개월수, 없으면 진단의 선호기간(preferredPeriod)으로 대체
+    private Integer resolveGoalMonths(FinancialGoals goal, PreferredPeriod preferredPeriod) {
+        if (goal != null && goal.getTargetDate() != null) {
+            return (int) java.time.temporal.ChronoUnit.MONTHS.between(LocalDateTime.now(), goal.getTargetDate());
+        }
+        return switch(preferredPeriod) {
+            case SHORT_TERM -> 12;
+            case MID_TERM -> 36;
+            case LONG_TERM -> null; // 제한 없음
+        };
+    }
+
+    // 재무목표 관련 참고 안내 문구(있으면 반환, 특이사항 없으면 null)
+    private String buildGoalNote(FinancialGoals goal, Boolean goalPeriodMatch) {
+        if (goal == null) {
+            return "설정된 재무목표가 없어 투자성향의 선호기간을 기준으로 참고했어요. 재무목표를 등록하면 더 정확한 안내를 받을 수 있어요.";
+        }
+        if (Boolean.FALSE.equals(goalPeriodMatch)) {
+            return "다만 재무목표(" + goal.getGoalName() + ") 시점보다 상품 가입기간이 길어요. 참고해주세요.";
+        }
+        return null;
     }
 
     private boolean checkRiskMatch(RiskTendency tendency, RiskLevel productRiskLevel) {

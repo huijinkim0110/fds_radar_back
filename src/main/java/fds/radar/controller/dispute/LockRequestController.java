@@ -13,6 +13,8 @@ import fds.radar.dto.dispute.LockRequestResponse;
 import fds.radar.service.dispute.LockRequestService;
 import jakarta.validation.Valid;
 
+import fds.radar.common.LockRequestStatus;
+
 @RestController
 @RequestMapping("/api/locks")
 @CrossOrigin(origins = "*")
@@ -52,6 +54,13 @@ public class LockRequestController {
     @GetMapping("/admin/pending")
     public ResponseEntity<List<LockRequestResponse>> getReceivedRequests() {
         return ResponseEntity.ok(lockRequestService.getReceivedRequests());
+    }
+
+    // [D파트 담당자 추가] 관리자 대시보드 상태별 필터를 위해 전체/상태별 조회 API 추가
+    @GetMapping("/admin")
+    public ResponseEntity<List<LockRequestResponse>> getAdminLockRequests(
+            @RequestParam(required = false) LockRequestStatus requestStatus) {
+        return ResponseEntity.ok(lockRequestService.getAdminLockRequests(requestStatus));
     }
 
     // 관리자 승인/반려

@@ -55,4 +55,12 @@ public class InvestmentProfileController {
         boolean result = investmentProfileService.hasDiagnosisHistory(userId);
         return ResponseEntity.ok(result);
     }
+
+    // 비로그인 사용자용 - 설문 응답 제출, 점수 계산만 하고 DB 저장은 하지 않음(체험용)
+    // POST /investment-profiles/preview
+    @PostMapping("/preview")
+    public ResponseEntity<InvestmentProfiles> previewDiagnose(@RequestBody InvestmentDiagnosisRequestDTO dto) {
+        InvestmentProfiles result = investmentProfileService.previewDiagnose(dto);
+        return ResponseEntity.ok(result);
+    }
 }

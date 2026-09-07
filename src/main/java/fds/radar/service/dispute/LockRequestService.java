@@ -161,4 +161,15 @@ public class LockRequestService {
                 .map(LockRequestResponse::from)
                 .toList();
     }
+
+    // [D파트 담당자 추가] 관리자 대시보드 상태별 필터를 위해 전체/상태별 조회 로직 추가
+    @Transactional(readOnly = true)
+    public List<LockRequestResponse> getAdminLockRequests(LockRequestStatus requestStatus) {
+        List<LockRequests> list = (requestStatus != null)
+                ? lockRequestRepository.findByRequestStatus(requestStatus)
+                : lockRequestRepository.findAll();
+        return list.stream()
+                .map(LockRequestResponse::from)
+                .toList();
+    }
 }

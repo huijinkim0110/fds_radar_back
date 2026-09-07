@@ -44,11 +44,14 @@ public class SuitabilityChecks {
     private boolean periodMatch;
     private boolean amountMatch;
     private boolean principalProtectionMatch;
+    private Boolean goalPeriodMatch; // 참고용(판정에 영향 없음), 재무목표 없으면 null
 
     @Enumerated(EnumType.STRING)
     private SuitabilityResult suitabilityResult;
     @Column(columnDefinition = "TEXT")
     private String checkReason;
+    @Column(columnDefinition = "TEXT")
+    private String goalNote;
     private LocalDateTime checkedAt;
 
 }

@@ -32,6 +32,19 @@ public class InvestmentProfileService {
         Users user = userRepository.findById(dto.getUserId())
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        InvestmentProfiles profile = buildProfile(dto, user);
+
+        return investmentProfilesRepository.save(profile);
+    }
+
+    // 비로그인 사용자용 - 점수 계산만 하고 DB에는 저장하지 않음(체험용)
+    @Transactional(readOnly=true)
+    public InvestmentProfiles previewDiagnose(InvestmentDiagnosisRequestDTO dto) {
+        return buildProfile(dto, null);
+    }
+
+    // 설문 응답 -> 점수 계산 및 InvestmentProfiles 객체 조립(저장은 호출부 책임)
+    private InvestmentProfiles buildProfile(InvestmentDiagnosisRequestDTO dto, Users user) {
         int totalScore = dto.getAgeScore()
                        + dto.getInvestmentExperienceScore()
                        + dto.getKnowledgeLevelScore()
@@ -41,26 +54,24 @@ public class InvestmentProfileService {
 
         RiskTendency riskTendency = calculateRiskTendency(totalScore);
 
-        InvestmentProfiles profile = InvestmentProfiles.builder()
-                                                       .user(user)
-                                                       .riskTendency(riskTendency)
-                                                       .investmentExperience(mapInvestmentExperience(dto.getInvestmentExperienceScore()))
-                                                       .lossTolerance(mapLossTolerance(dto.getLossToleranceScore()))
-                                                       .preferredPeriod(mapPreferredPeriod(dto.getPreferredPeriodScore()))
-                                                       .principalProtectionPreference(dto.getPrincipalProtectionRequired())
-                                                       .diagnosisScore(totalScore)
-                                                       .diagnosedAt(LocalDateTime.now())
-                                                       .age(dto.getAge())
-                                                       .gender(dto.getGender())
-                                                       .region(dto.getRegion())
-                                                       .incomeBracket(dto.getIncomeBracket())
-                                                       .occupationGroup(dto.getOccupationGroup())
-                                                       .maritalStatus(dto.getMaritalStatus())
-                                                       .crossCoverage(dto.getCrossCoverage())
-                                                       .diseaseHistory(dto.getDiseaseHistory())
-                                                       .build();
-
-        return investmentProfilesRepository.save(profile);
+        return InvestmentProfiles.builder()
+                                 .user(user)
+                                 .riskTendency(riskTendency)
+                                 .investmentExperience(mapInvestmentExperience(dto.getInvestmentExperienceScore()))
+                                 .lossTolerance(mapLossTolerance(dto.getLossToleranceScore()))
+                                 .preferredPeriod(mapPreferredPeriod(dto.getPreferredPeriodScore()))
+                                 .principalProtectionPreference(dto.getPrincipalProtectionRequired())
+                                 .diagnosisScore(totalScore)
+                                 .diagnosedAt(LocalDateTime.now())
+                                 .age(dto.getAge())
+                                 .gender(dto.getGender())
+                                 .region(dto.getRegion())
+                                 .incomeBracket(dto.getIncomeBracket())
+                                 .occupationGroup(dto.getOccupationGroup())
+                                 .maritalStatus(dto.getMaritalStatus())
+                                 .crossCoverage(dto.getCrossCoverage())
+                                 .diseaseHistory(dto.getDiseaseHistory())
+                                 .build();
     }
 
     // 마이페이지 화면용(최신 3건만 조회)
