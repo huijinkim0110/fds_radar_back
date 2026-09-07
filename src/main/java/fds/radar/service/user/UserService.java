@@ -14,6 +14,7 @@ import fds.radar.dto.user.LoginRequest;
 import fds.radar.dto.user.LoginResponse;
 import fds.radar.dto.user.SignUpRequest;
 import fds.radar.dto.user.SignUpResponse;
+import fds.radar.dto.user.UserProfileResponse;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.user.UserRepository;
 import fds.radar.service.security.JwtTokenProvider;
@@ -42,7 +43,7 @@ public class UserService {
         try {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             format.setLenient(false);
-            birthDate = format.parse(request.getBirthDete());
+            birthDate = format.parse(request.getBirthDate());
 
         } catch (ParseException e) {
             throw new IllegalArgumentException(
@@ -109,5 +110,17 @@ public class UserService {
                 user.getRole().name(),
                 token
         );
+    }
+
+    // 회원정보 조회
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(Long userId) {
+
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 회원입니다.")
+                );
+
+        return UserProfileResponse.from(user);
     }
 }

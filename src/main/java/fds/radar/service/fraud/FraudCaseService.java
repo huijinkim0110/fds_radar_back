@@ -33,6 +33,7 @@ import fds.radar.dto.dispute.LockRequestProcessRequest;
 import fds.radar.dto.dispute.LockRequestResponse;
 import fds.radar.entity.fraud.FraudCases;
 import fds.radar.entity.fraud.FraudDetectionResults;
+import fds.radar.entity.transaction.Transactions;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.fraud.FraudCaseRepository;
 import fds.radar.repository.user.UserRepository;
@@ -179,21 +180,38 @@ public class FraudCaseService {
                 .toList();
     }
 
+    // 유저 본인의 이상거래 목록 조회
+    public java.util.List<FraudCaseListResponse> getMyFraudCases(Long userId) {
+        return fraudCaseRepository.findByUser_UserId(userId).stream()
+                .map(this::toListResponse)
+                .toList();
+    }
+
     public Page<FraudCaseListResponse> getCaseList(Pageable pageable) {
         Page<FraudCases> cases = fraudCaseRepository.findAll(pageable);
 
         return cases.map(this::toListResponse);
     }
-    
+
+    // 거래처/금액/유형/확인여부/실거래시각까지 포함해서 응답 생성.
+    // merchant는 nullable=true라 null 가드 필요 (온라인결제 등 가맹점 정보 없는 거래 대비)
     private FraudCaseListResponse toListResponse(FraudCases fraudCase) {
+        Transactions transaction = fraudCase.getTransaction();
+        var merchant = transaction.getMerchant();
+
         return FraudCaseListResponse.builder()
             .fraudCaseId(fraudCase.getFraudCaseId())
-            .transactionId(fraudCase.getTransaction().getTransactionId())
+            .transactionId(transaction.getTransactionId())
             .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
             .priority(fraudCase.getPriority())
             .caseStatus(fraudCase.getCaseStatus())
             .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
             .openedAt(fraudCase.getOpenedAt())
+            .merchantName(merchant != null ? merchant.getMerchantName() : "-")
+            .amount(transaction.getAmount())
+            .transactionType(transaction.getTransactionType().toString())
+            .confirmation(fraudCase.getConfirmation())
+            .transactionOccurredAt(transaction.getOccurredAt())
             .build();
     }
 

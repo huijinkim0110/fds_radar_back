@@ -2,6 +2,7 @@ package fds.radar.controller.finance;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +15,7 @@ import fds.radar.service.finance.FinancialProfileService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/financial-profiles")
+@RequestMapping("/api/financial-profiles")
 @RequiredArgsConstructor
 public class FinancialProfileController {
 
@@ -27,10 +28,10 @@ public class FinancialProfileController {
         return ResponseEntity.ok(financialProfileService.hasProfile(userId));
     }
 
-    @GetMapping
-    public ResponseEntity<FinancialProfileResponse> getProfile(@RequestParam Long userId) {
-        return ResponseEntity.ok(financialProfileService.getProfile(userId));
-    }
+    @GetMapping("/{userId}")
+public ResponseEntity<FinancialProfileResponse> getProfile(@PathVariable Long userId) {
+    return ResponseEntity.ok(financialProfileService.getProfile(userId));
+}
 
     // 있으면 수정, 없으면 등록
     @PostMapping
