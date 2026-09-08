@@ -3,6 +3,7 @@ package fds.radar.dto.account;
 import java.math.BigDecimal;
 
 import fds.radar.common.AccountStatus;
+import fds.radar.common.AccountType;
 import fds.radar.entity.account.Accounts;
 
 public class AccountResponse {
@@ -13,18 +14,20 @@ public class AccountResponse {
     private BigDecimal balance;
     private BigDecimal dailyTransferLimit;
     private AccountStatus status;
+    private AccountType accountType;
 
     public AccountResponse() {}
 
     public AccountResponse(Long id, String accountName, String accountNumber,
                             BigDecimal balance, BigDecimal dailyTransferLimit,
-                            AccountStatus status) {
+                            AccountStatus status, AccountType accountType) {
         this.id = id;
         this.accountName = accountName;
         this.accountNumber = accountNumber;
         this.balance = balance;
         this.dailyTransferLimit = dailyTransferLimit;
         this.status = status;
+        this.accountType = accountType;
     }
 
     public static AccountResponse from(Accounts account) {
@@ -34,7 +37,8 @@ public class AccountResponse {
             maskAccountNumber(account.getAccountNumber()),
             account.getBalance(),
             account.getDailyTransferLimit(),
-            account.getAccountStatus()
+            account.getAccountStatus(),
+            account.getAccountType()
         );
     }
 
@@ -49,4 +53,5 @@ public class AccountResponse {
     public BigDecimal getBalance() {return balance;}
     public BigDecimal getDailyTransferLimit() {return dailyTransferLimit;}
     public AccountStatus getStatus() {return status;}
+    public AccountType getAccountType() {return accountType;}
 }
