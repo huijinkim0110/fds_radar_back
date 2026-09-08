@@ -107,4 +107,17 @@ public void payWithCard(Long cardId, BigDecimal amount) {
     // DB에 명시적으로 저장
     cardRepository.save(card);
 }
+
+// 카드 해지
+@Transactional
+public void cancelCard(Long userId, Long cardId) {
+    Cards card = cardRepository.findByCardIdAndUser_UserId(cardId, userId)
+        .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
+    
+    if (card.getStatus() == CardStatus.CANCELLED) {
+        throw new BusinessException("이미 해지된 카드입니다.");
+    }
+    
+    card.setStatus(CardStatus.CANCELLED);
+}
 }
