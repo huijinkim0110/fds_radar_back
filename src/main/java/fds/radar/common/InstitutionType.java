@@ -5,7 +5,8 @@ public enum InstitutionType {
     CARD_COMPANY("카드사"),
     SECURITIES("증권사"),
     INSURANCE("보험사"),
-    OTHER_INSTITURION("기타");
+    ASSET_MANAGEMENT("자산운용사"),
+    OTHER_INSTITUTION("기타");
 
     private final String description;
 
