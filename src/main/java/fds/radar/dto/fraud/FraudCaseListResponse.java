@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import fds.radar.common.CasePriority;
 import fds.radar.common.CaseStatus;
+import fds.radar.common.FraudDecision;
 import fds.radar.common.UserConfirmation;
 import fds.radar.common.TransactionType;   // import 추가
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ public class FraudCaseListResponse {
     private CasePriority priority;
     private TransactionType transactionType; // 추가: 계좌이체/카드결제 구분 표시용
     private CaseStatus caseStatus;
+    private FraudDecision fraudDecision; // [D파트 추가] 목록에서 바로 사기/정상 확인 가능하도록
     private Long assignedAdminId;
     private LocalDateTime openedAt;
 
