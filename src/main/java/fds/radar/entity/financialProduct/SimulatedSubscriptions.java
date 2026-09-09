@@ -2,6 +2,7 @@ package fds.radar.entity.financialProduct;
 
 import java.time.LocalDateTime;
 
+import fds.radar.common.PaymentMethod;
 import fds.radar.common.SubscriptionStatus;
 import fds.radar.entity.account.Accounts;
 import fds.radar.entity.finance.FinancialGoals;
@@ -50,7 +51,12 @@ public class SimulatedSubscriptions {
     @JoinColumn(name="goal_id", nullable=true)
     private FinancialGoals goal;
 
-    private Long subscriptionAmount;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    // 일시납/혼합의 초기 목돈(LUMP_SUM, MIXED에 사용, INSTALLMENT이면 null)
+    private Long initialAmount;
+    // 월 납입액(INSTALLMENT, MIXED에서 사용, LUMP_SUM이면 null)
     private Long monthlyPayment;
     private Integer subscriptionPeriod;
     private Long expectedMaturityAmount;
@@ -59,10 +65,10 @@ public class SimulatedSubscriptions {
     @Builder.Default
     private Long paidAmount = 0L;
 
-    // 적금(월납) 상품만 사용 - 몇 회차까지 납입했는지
+    // 월납 회차가 있는 경우만 사용 - 몇 회차까지 납입했는지
     private Integer paidInstallments;
 
-    // 적금(월납) 상품만 사용 - 다음 자동 납입 예정일. 완납/일시납이면 null
+    // 월납 회차가 남은 경우만 사용 - 다음 자동 납입 예정일. 완납/일시납이면 null
     private LocalDateTime nextPaymentDate;
 
     @Enumerated(EnumType.STRING)

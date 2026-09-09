@@ -2,6 +2,7 @@ package fds.radar.dto.financialProduct;
 
 import java.time.LocalDateTime;
 
+import fds.radar.common.PaymentMethod;
 import fds.radar.common.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,8 @@ public class SubscriptionResponseDTO {
     private String accountNumber; // 마스킹된 계좌번호
     private Long goalId; // 연동된 재무목표(없으면 null)
     private String goalName;
-    private Long subscriptionAmount;
+    private PaymentMethod paymentMethod;
+    private Long initialAmount;
     private Long monthlyPayment;
     private Integer subscriptionPeriod;
     private Long expectedMaturityAmount;

@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.AccountStatus;
 import fds.radar.common.GoalStatus;
+import fds.radar.common.PaymentMethod;
 import fds.radar.common.ProductType;
 import fds.radar.common.SubscriptionStatus;
 import fds.radar.dto.financialProduct.SubscriptionRequestDTO;
@@ -42,9 +46,20 @@ public class SimulatedSubscriptionsService {
     private final FinancialGoalsRepository financialGoalsRepository;
     private final FinancialGoalsService financialGoalsService;
 
-    // 상품 모의 가입
-    // - SAVINGS(적금) : subscriptionAmount를 "월 납입액"으로 해석, 적금식 단리 계산
-    // - 그 외(DEPOSIT 등) : subscriptionAmount를 "일시납 총액"으로 해석, 단리 계산
+    private static final Map<ProductType, Set<PaymentMethod>>
+    ALLOWED_METHODS = Map.of(
+        ProductType.DEPOSIT, EnumSet.of(PaymentMethod.LUMP_SUM),
+        ProductType.SAVINGS, EnumSet.of(PaymentMethod.INSTALLMENT),
+        ProductType.BOND, EnumSet.of(PaymentMethod.LUMP_SUM),
+        ProductType.FUND, EnumSet.of(PaymentMethod.LUMP_SUM, PaymentMethod.INSTALLMENT, PaymentMethod.MIXED),
+        ProductType.INSURANCE, EnumSet.of(PaymentMethod.LUMP_SUM, PaymentMethod.INSTALLMENT, PaymentMethod.MIXED),
+        ProductType.OTHER_PRODUCT, EnumSet.of(PaymentMethod.LUMP_SUM)
+    );
+
+    // 상품 모의 가입 - 결제 방식(PaymentMethod)은 사용자 선택, 허용 여부는 ALLOWED_METHODS로 검증
+    // - LUMP_SUM : initialAmount 전액 일시납, 거치식 단리 계산
+    // - INSTALLMENT : monthlyPayment 매월 납입, 적금식 단리 계산
+    // - MIXED : 초기 initialAmount + 매월 monthlyPayment 병행, 두 계산을 합산
     @Transactional
     public SubscriptionResponseDTO subscribe(SubscriptionRequestDTO dto) {
         Users user = userRepository.findById(dto.getUserId())
@@ -53,7 +68,8 @@ public class SimulatedSubscriptionsService {
         FinancialProducts product = financialProductsRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
-        validateAmount(dto.getSubscriptionAmount(), product);
+        validatePaymentMethod(product, dto);
+        validateAmount(dto, product);
 
         Accounts owned = accountRepository.findByAccountIdAndUser_UserId(dto.getAccountId(), dto.getUserId())
                 .orElseThrow(() -> new NotFoundException("계좌를 찾을 수 없습니다."));
@@ -71,23 +87,21 @@ public class SimulatedSubscriptionsService {
             }
         }
 
-        boolean isInstallment = product.getProductType() == ProductType.SAVINGS;
+        PaymentMethod method = dto.getPaymentMethod();
+        boolean hasInstallment = method == PaymentMethod.INSTALLMENT || method == PaymentMethod.MIXED;
 
-        Long monthlyPayment;
-        Long expectedMaturityAmount;
+        Long expectedMaturityAmount = switch(method) {
+            case LUMP_SUM -> calculateLumpSumMaturity(
+                dto.getInitialAmount(), product.getExpectedReturnRate(), dto.getSubscriptionPeriod());
+            case INSTALLMENT -> calculateInstallmentMaturity(
+                dto.getMonthlyPayment(), product.getExpectedReturnRate(), dto.getSubscriptionPeriod());
+            case MIXED -> calculateMixedMaturity(
+                dto.getInitialAmount(), dto.getMonthlyPayment(), product.getExpectedReturnRate(), dto.getSubscriptionPeriod());
+        };
 
-        if (isInstallment) {
-            monthlyPayment = dto.getSubscriptionAmount();
-            expectedMaturityAmount = calculateInstallmentMaturity(
-                    dto.getSubscriptionAmount(), product.getExpectedReturnRate(), dto.getSubscriptionPeriod());
-        } else {
-            monthlyPayment = null; // 일시납 상품은 월 납입 개념 없음
-            expectedMaturityAmount = calculateLumpSumMaturity(
-                    dto.getSubscriptionAmount(), product.getExpectedReturnRate(), dto.getSubscriptionPeriod());
-        }
-
-        // 가입 시점 첫 납입 - 일시납은 전액, 적금은 1회차 월납입액만 실제 차감
-        long firstPaymentAmount = isInstallment ? monthlyPayment : dto.getSubscriptionAmount();
+        // 가입 시점 첫 납입 - 초기금액 전액 + (월납 방식이면) 1회차 월 납입액까지 함께 차감
+        long firstPaymentAmount = (dto.getInitialAmount() != null ? dto.getInitialAmount() : 0L)
+                                  + (hasInstallment ? dto.getMonthlyPayment() : 0L);
 
         Accounts lockedAccount = accountRepository.findByAccountIdForUpdate(owned.getAccountId())
                 .orElseThrow(() -> new NotFoundException("계좌를 찾을 수 없습니다."));
@@ -99,19 +113,20 @@ public class SimulatedSubscriptionsService {
         lockedAccount.setBalance(lockedAccount.getBalance().subtract(paymentAmount));
 
         LocalDateTime now = LocalDateTime.now();
-        boolean hasMorePayments = isInstallment && dto.getSubscriptionPeriod() > 1;
+        boolean hasMorePayments = hasInstallment && dto.getSubscriptionPeriod() > 1;
 
         SimulatedSubscriptions subscription = SimulatedSubscriptions.builder()
                 .user(user)
                 .product(product)
                 .account(lockedAccount)
                 .goal(goal)
-                .subscriptionAmount(dto.getSubscriptionAmount())
-                .monthlyPayment(monthlyPayment)
+                .paymentMethod(method)
+                .initialAmount(dto.getInitialAmount())
+                .monthlyPayment(hasInstallment ? dto.getMonthlyPayment() : null)
                 .subscriptionPeriod(dto.getSubscriptionPeriod())
                 .expectedMaturityAmount(expectedMaturityAmount)
                 .paidAmount(firstPaymentAmount)
-                .paidInstallments(isInstallment ? 1 : null)
+                .paidInstallments(hasInstallment ? 1 : null)
                 .nextPaymentDate(hasMorePayments ? now.plusMonths(1) : null)
                 .subscriptionStatus(SubscriptionStatus.ACTIVE)
                 .subscribedAt(now)
@@ -135,20 +150,19 @@ public class SimulatedSubscriptionsService {
             throw new BusinessException("이미 종료된 가입 건입니다.");
         }
 
-        boolean isInstallment = subscription.getMonthlyPayment() != null;
+        PaymentMethod method = subscription.getPaymentMethod();
         FinancialProducts product = subscription.getProduct();
+        int elapsedMonths = (int) Math.max(0, ChronoUnit.MONTHS.between(subscription.getSubscribedAt(), LocalDateTime.now()));
+        int paidInstallments = subscription.getPaidInstallments() != null ? subscription.getPaidInstallments() : 0;
 
-        long refundAmount;
-        if (isInstallment) {
-            int paidInstallments = subscription.getPaidInstallments() != null ? subscription.getPaidInstallments() : 0;
-            refundAmount = calculateInstallmentMaturity(subscription.getMonthlyPayment(),
-                    product.getExpectedReturnRate(), paidInstallments);
-        } else {
-            int elapsedMonths = (int) Math.max(0,
-                    ChronoUnit.MONTHS.between(subscription.getSubscribedAt(), LocalDateTime.now()));
-            refundAmount = calculateLumpSumMaturity(subscription.getSubscriptionAmount(),
-                    product.getExpectedReturnRate(), elapsedMonths);
-        }
+        long refundAmount = switch (method) {
+            case LUMP_SUM -> calculateLumpSumMaturity(
+                subscription.getInitialAmount(), product.getExpectedReturnRate(), elapsedMonths);
+            case INSTALLMENT -> calculateInstallmentMaturity(
+                subscription.getMonthlyPayment(), product.getExpectedReturnRate(), paidInstallments);
+            case MIXED -> calculateLumpSumMaturity(subscription.getInitialAmount(), product.getExpectedReturnRate(), elapsedMonths)
+                        + calculateInstallmentMaturity(subscription.getMonthlyPayment(), product.getExpectedReturnRate(), paidInstallments);
+        };
 
         if (refundAmount > 0) {
             Accounts account = accountRepository.findByAccountIdForUpdate(subscription.getAccount().getAccountId())
@@ -176,11 +190,34 @@ public class SimulatedSubscriptionsService {
                 .toList();
     }
 
-    private void validateAmount(Long amount, FinancialProducts product) {
-        if (product.getMinAmount() != null && amount < product.getMinAmount()) {
+    private void validatePaymentMethod(FinancialProducts product, SubscriptionRequestDTO dto) {
+        PaymentMethod method = dto.getPaymentMethod();
+        if (method == null) {
+            throw new IllegalArgumentException("결제 방식을 선택해주세요.");
+        }
+        if (!ALLOWED_METHODS.get(product.getProductType()).contains(method)) {
+            throw new BusinessException("이 상품은 해당 결제방식을 지원하지 않습니다.");
+        }
+
+        boolean needsInitial = method == PaymentMethod.LUMP_SUM || method == PaymentMethod.MIXED;
+        boolean needsMonthly = method == PaymentMethod.INSTALLMENT || method == PaymentMethod.MIXED;
+
+        if (needsInitial && (dto.getInitialAmount() == null || dto.getInitialAmount() <= 0)) {
+            throw new IllegalArgumentException("일시납 초기금액을 입력해주세요.");
+        }
+        if (needsMonthly && (dto.getMonthlyPayment() == null || dto.getMonthlyPayment() <= 0)) {
+            throw new IllegalArgumentException("월 납입액을 입력해주세요.");
+        }
+    }
+
+    private void validateAmount(SubscriptionRequestDTO dto, FinancialProducts product) {
+        long total = (dto.getInitialAmount() != null ? dto.getInitialAmount() : 0L)
+                   + (dto.getMonthlyPayment() != null ? dto.getMonthlyPayment() * dto.getSubscriptionPeriod() : 0L);
+
+        if (product.getMinAmount() != null && total < product.getMinAmount()) {
             throw new IllegalArgumentException("최소 가입금액(" + product.getMinAmount() + "원) 미만입니다.");
         }
-        if (product.getMaxAmount() != null && amount > product.getMaxAmount()) {
+        if (product.getMaxAmount() != null && total > product.getMaxAmount()) {
             throw new IllegalArgumentException("최대 가입금액(" + product.getMaxAmount() + "원)을 초과했습니다.");
         }
     }
@@ -193,9 +230,9 @@ public class SimulatedSubscriptionsService {
                 .findBySubscriptionStatus(SubscriptionStatus.ACTIVE);
 
         for (SimulatedSubscriptions s : activeSubs) {
-            boolean isInstallment = s.getMonthlyPayment() != null;
+            boolean hasInstallment = s.getPaymentMethod() == PaymentMethod.INSTALLMENT || s.getPaymentMethod() == PaymentMethod.MIXED;
 
-            if (isInstallment) {
+            if (hasInstallment) {
                 processInstallmentPayment(s, now);
             } else if (!s.getSubscribedAt().plusMonths(s.getSubscriptionPeriod()).isAfter(now)) {
                 Accounts account = accountRepository.findByAccountIdForUpdate(s.getAccount().getAccountId())
@@ -282,11 +319,19 @@ public class SimulatedSubscriptionsService {
         return BigDecimal.valueOf(totalPrincipal).add(interest).setScale(0, RoundingMode.HALF_UP).longValue();
     }
 
+    // 혼합(MIXED) : 초기 목돈의 거치식 이자 + 월납분의 적립식 이자를 합산
+    private Long calculateMixedMaturity(Long initialAmount, Long monthlyAmount, BigDecimal expectedReturnRate, Integer periodMonths) {
+        long lumpPart = calculateLumpSumMaturity(initialAmount, expectedReturnRate, periodMonths);
+        long installmentPart = calculateInstallmentMaturity(monthlyAmount, expectedReturnRate, periodMonths);
+        return lumpPart + installmentPart;
+    }
+
     private SubscriptionResponseDTO toResponseDTO(SimulatedSubscriptions s) {
-        boolean isInstallment = s.getMonthlyPayment() != null;
-        long target = isInstallment
-                ? s.getMonthlyPayment() * s.getSubscriptionPeriod()
-                : s.getSubscriptionAmount();
+        long target = switch (s.getPaymentMethod()) {
+            case LUMP_SUM -> s.getInitialAmount();
+            case INSTALLMENT -> s.getMonthlyPayment() * s.getSubscriptionPeriod();
+            case MIXED -> s.getInitialAmount() + s.getMonthlyPayment() * s.getSubscriptionPeriod();
+        };
         long paid = s.getPaidAmount() != null ? s.getPaidAmount() : 0L;
         double achievementRate = target == 0 ? 0.0
                 : BigDecimal.valueOf(paid * 100.0 / target).setScale(1, RoundingMode.HALF_UP).doubleValue();
@@ -298,7 +343,8 @@ public class SimulatedSubscriptionsService {
                 .accountNumber(maskAccountNumber(s.getAccount().getAccountNumber()))
                 .goalId(s.getGoal() != null ? s.getGoal().getGoalId() : null)
                 .goalName(s.getGoal() != null ? s.getGoal().getGoalName() : null)
-                .subscriptionAmount(s.getSubscriptionAmount())
+                .paymentMethod(s.getPaymentMethod())
+                .initialAmount(s.getInitialAmount())
                 .monthlyPayment(s.getMonthlyPayment())
                 .subscriptionPeriod(s.getSubscriptionPeriod())
                 .expectedMaturityAmount(s.getExpectedMaturityAmount())
