@@ -52,6 +52,11 @@ public class LockRequests {
     @Column
     private Long targetId;
 
+    // [D파트 추가] 관리자가 이 잠금을 이후에 해제했는지 여부/시각
+    @Column
+    private Boolean released;
+    private LocalDateTime releasedAt;
+
     private LocalDateTime requestedAt;
     private LocalDateTime processedAt;
     
