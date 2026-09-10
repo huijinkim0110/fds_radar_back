@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import fds.radar.common.DeviceType;
 import fds.radar.dto.user.DeviceRegisterRequest;
 import fds.radar.dto.user.DeviceResponse;
 import fds.radar.entity.user.UserDevices;
@@ -37,6 +38,7 @@ public class UserDeviceService {
                                         .build()
                         )
                         .deviceName(request.getDeviceName())
+                        .deviceType(DeviceType.DESKTOP)
                         .deviceIdentifier(request.getDeviceId())
                         .trusted(false)
                         .blocked(false)
