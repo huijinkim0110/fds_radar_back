@@ -12,6 +12,7 @@ import fds.radar.common.UserRole;
 import fds.radar.common.UserStatus;
 import fds.radar.dto.user.LoginRequest;
 import fds.radar.dto.user.LoginResponse;
+import fds.radar.dto.user.PasswordResetRequest;
 import fds.radar.dto.user.SignUpRequest;
 import fds.radar.dto.user.SignUpResponse;
 import fds.radar.dto.user.UserProfileResponse;
@@ -44,7 +45,6 @@ public class UserService {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             format.setLenient(false);
             birthDate = format.parse(request.getBirthDate());
-
         } catch (ParseException e) {
             throw new IllegalArgumentException(
                     "생년월일은 yyyy-MM-dd 형식으로 입력해주세요."
@@ -76,7 +76,7 @@ public class UserService {
         // 이메일로 회원 조회
         Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 이메일입니다.")
+                    new IllegalArgumentException("존재하지 않는 이메일입니다.")
                 );
 
         // 비밀번호 확인
@@ -118,9 +118,52 @@ public class UserService {
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 회원입니다.")
+                    new IllegalArgumentException("존재하지 않는 회원입니다.")
                 );
 
         return UserProfileResponse.from(user);
+    }
+
+    // 가입된 이메일인지 확인
+    @Transactional(readOnly = true)
+    public boolean checkEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    // 비밀번호 재설정
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+
+        Users user;
+
+        if ("EMAIL".equalsIgnoreCase(request.getVerificationType())) {
+
+            user = userRepository.findByEmail(request.getVerificationValue())
+                .orElseThrow(() ->
+                    new IllegalArgumentException("일치하는 회원정보가 없습니다.")
+                );
+
+        } else if ("PHONE".equalsIgnoreCase(request.getVerificationType())) {
+
+            user = userRepository.findByPhone(request.getVerificationValue())
+                .orElseThrow(() ->
+                    new IllegalArgumentException("일치하는 회원정보가 없습니다.")
+                );
+
+        } else {
+            throw new IllegalArgumentException("올바른 인증 방식을 선택해주세요.");
+        }
+
+        // 새 비밀번호 암호화
+        user.setPassword(
+                passwordEncoder.encode(request.getNewPassword())
+        );
+
+        // 비밀번호 변경 시간 저장
+        user.setPasswordUpdatedAt(
+                java.time.LocalDateTime.now()
+        );
+
+        userRepository.save(user);
     }
 }
