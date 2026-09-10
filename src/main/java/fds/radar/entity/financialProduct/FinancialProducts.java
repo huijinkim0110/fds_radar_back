@@ -3,6 +3,8 @@ package fds.radar.entity.financialProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Formula;
+
 import fds.radar.common.ProductStatus;
 import fds.radar.common.ProductType;
 import fds.radar.common.RiskLevel;
@@ -46,6 +48,9 @@ public class FinancialProducts {
     private String description;
     @Enumerated(EnumType.STRING)
     private RiskLevel riskLevel;
+
+    @Formula("CASE risk_level WHEN 'VERY_LOW' THEN 1 WHEN 'LOW' THEN 2 WHEN 'MEDIUM' THEN 3 WHEN 'HIGH' THEN 4 WHEN 'VERY_HIGH' THEN 5 END")
+    private Integer riskScore;
 
     private boolean principalProtection;
     private Long minAmount;

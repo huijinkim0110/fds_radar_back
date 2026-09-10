@@ -1,10 +1,15 @@
 package fds.radar.service.financialProduct;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import fds.radar.common.ProductSortType;
 import fds.radar.common.ProductStatus;
 import fds.radar.common.ProductType;
 import fds.radar.common.RiskLevel;
@@ -23,11 +28,29 @@ public class FinancialProductsService {
 
     // 상품 목록 조회(비로그인 사용자도 접근 가능)
     @Transactional(readOnly=true)
-    public Page<ProductListResponseDTO> getProducts(ProductType productType, RiskLevel riskLevel, Pageable pageable) {
+    public Page<ProductListResponseDTO> getProducts(List<ProductType> productTypes, List<RiskLevel> riskLevels, ProductSortType sortType, Pageable pageable) {
+        List<ProductType> types = (productTypes == null || productTypes.isEmpty()) ? null : productTypes;
+        List<RiskLevel> risks = (riskLevels == null || riskLevels.isEmpty()) ? null : riskLevels;
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), resolveSort(sortType));
         Page<FinancialProducts> products = financialProductsRepository
-                                           .search(productType, riskLevel, ProductStatus.ON_SALE, pageable);
+                                           .search(types, risks, ProductStatus.ON_SALE, sortedPageable);
 
         return products.map(FinancialProductMapper::toListDTO);
+    }
+
+    // ProductSortType을 실제 정렬 기준(Sort)으로 변환
+    private Sort resolveSort(ProductSortType sortType) {
+        if (sortType == null) {
+            return Sort.unsorted();
+        }
+        return switch (sortType) {
+            case RISK_ASC -> Sort.by(Sort.Direction.ASC, "riskScore");
+            case RISK_DESC -> Sort.by(Sort.Direction.DESC, "riskScore");
+            case RETURN_ASC -> Sort.by(Sort.Direction.ASC, "expectedReturnRate");
+            case RETURN_DESC -> Sort.by(Sort.Direction.DESC, "expectedReturnRate");
+            case PERIOD_ASC -> Sort.by(Sort.Direction.ASC, "subscriptionPeriod");
+            case PERIOD_DESC -> Sort.by(Sort.Direction.DESC, "subscriptionPeriod");
+        };
     }
 
     // 상품 상세 조회(비로그인 사용자도 접근 가능)

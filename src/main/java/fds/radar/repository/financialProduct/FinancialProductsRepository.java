@@ -16,15 +16,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface FinancialProductsRepository extends JpaRepository<FinancialProducts, Long> {
-    // 상품 목록 조회용 - productType/riskLevel은 선택적 필터(null이면 조건 무시)
+    // 상품 목록 조회용 - productType/riskLevel은 선택적 필터(빈 리스트면 조건 무시)
     // 판매중(ON_SALE)인 상품만 목록에 노출
     @Query("SELECT fp FROM FinancialProducts fp " +
            "WHERE fp.productStatus = :status " + 
-           "AND (:productType IS NULL OR fp.productType = :productType) " + 
-           "AND (:riskLevel IS NULL OR fp.riskLevel = :riskLevel)")
+           "AND (:productTypes IS NULL OR fp.productType IN :productTypes) " +
+           "AND (:riskLevels IS NULL OR fp.riskLevel IN :riskLevels)")
     Page<FinancialProducts> search(
-        @Param("productType") ProductType productType,
-        @Param("riskLevel") RiskLevel riskLevel,
+        @Param("productTypes") List<ProductType> productTypes,
+        @Param("riskLevels") List<RiskLevel> riskLevels,
         @Param("status") ProductStatus status,
         Pageable pageable);
 
