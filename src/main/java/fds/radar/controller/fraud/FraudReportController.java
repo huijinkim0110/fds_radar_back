@@ -73,4 +73,10 @@ public class FraudReportController {
 
         return ResponseEntity.ok(response);
     }
+
+    // [D파트 추가] 관리자용 전체 신고 목록 조회
+    @GetMapping("/admin")
+    public ResponseEntity<List<FraudReportResponse>> getAllReports() {
+        return ResponseEntity.ok(fraudReportService.getAllReports());
+    }
 }

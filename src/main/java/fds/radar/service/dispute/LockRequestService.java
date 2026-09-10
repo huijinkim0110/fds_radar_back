@@ -138,6 +138,45 @@ public class LockRequestService {
         }
     }
 
+    // [D파트 추가] 관리자가 완료(COMPLETED)된 잠금을 해제(원상복구)하는 기능 — REQ-F-8-04
+    @Transactional
+    public LockRequestResponse release(Long lockRequestId) {
+        LockRequests lock = lockRequestRepository.findById(lockRequestId)
+                .orElseThrow(() -> new NotFoundException("잠금 요청을 찾을 수 없습니다."));
+
+        if (lock.getRequestStatus() != LockRequestStatus.COMPLETED) {
+            throw new BusinessException("잠금 처리(COMPLETED)된 요청만 해제할 수 있습니다.");
+        }
+        if (Boolean.TRUE.equals(lock.getReleased())) {
+            throw new BusinessException("이미 해제된 요청입니다.");
+        }
+
+        releaseLock(lock);
+        lock.setReleased(true);
+        lock.setReleasedAt(LocalDateTime.now());
+        return LockRequestResponse.from(lock);
+    }
+
+    // [D파트 추가] applyLock()과 대칭 — CARD/ACCOUNT 상태를 잠금 이전(ACTIVE)으로 되돌림
+    private void releaseLock(LockRequests lock) {
+        if (lock.getTargetType() == RequestTargetType.CARD) {
+            Long cardId = lock.getFraudCase() != null
+                    ? lock.getFraudCase().getTransaction().getCards().getCardId()
+                    : lock.getTargetId();
+            Cards card = cardRepository.findByCardIdForUpdate(cardId)
+                    .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
+            card.setStatus(CardStatus.ACTIVE);
+
+        } else if (lock.getTargetType() == RequestTargetType.ACCOUNT) {
+            Long accountId = lock.getFraudCase() != null
+                    ? lock.getFraudCase().getTransaction().getAccount().getAccountId()
+                    : lock.getTargetId();
+            Accounts account = accountRepository.findByAccountIdForUpdate(accountId)
+                    .orElseThrow(() -> new NotFoundException("계좌를 찾을 수 없습니다."));
+            account.setAccountStatus(AccountStatus.ACTIVE);
+        }
+    }
+
     // ===== 조회 =====
     @Transactional(readOnly = true)
     public List<LockRequestResponse> getMyLockRequests(Long userId) {

@@ -92,4 +92,10 @@ public ResponseEntity<DisputeRequestResponse> reject(
     return ResponseEntity.ok(response);
     
     }
+
+    // [D파트 추가] 관리자용 전체 이의제기 목록 조회
+    @GetMapping("/admin")
+    public ResponseEntity<List<DisputeRequestResponse>> getAllRequests() {
+        return ResponseEntity.ok(disputeRequestService.getAllRequests());
+    }
 }

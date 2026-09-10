@@ -51,8 +51,9 @@ public class DisputeRequestService {
         DisputeRequests disputeRequests = DisputeRequests.builder()
                 .user(user)
                 .transaction(transaction)
-                .disputeType(request.getReason()) // 프론트에서 넘어온 reason 값 바인딩
+                .disputeType(request.getDisputeType()) // [D파트 수정] request.getReason() 대신 실제 유형 필드로 수정 — 기존엔 유형 값이 저장 안 되고 사유로 덮어써지던 버그
                 .requestReason(request.getReason())
+                .requestAmount(transaction.getAmount().intValue()) // [D파트 추가] 관리자 화면 표시용, 대상 거래 금액 자동 반영
                 .requestStatus(RequestStatus.RECEIVED)
                 .requestedAt(LocalDateTime.now())
                 .build();
@@ -68,6 +69,16 @@ public class DisputeRequestService {
 
         return disputeRequestRepository.findByUser_UserId(userId)
                 .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // [D파트 추가] 관리자용 전체 이의제기 목록 조회 — 신청일시 최신순
+    @Transactional(readOnly = true)
+    public List<DisputeRequestResponse> getAllRequests() {
+        return disputeRequestRepository.findAll()
+                .stream()
+                .sorted((a, b) -> b.getRequestedAt().compareTo(a.getRequestedAt()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -136,9 +147,16 @@ public class DisputeRequestService {
 
         return DisputeRequestResponse.builder()
                 .id(disputeRequest.getDisputeRequestId())
+                .userId(disputeRequest.getUser().getUserId()) // [D파트 추가]
+                .userEmail(disputeRequest.getUser().getEmail()) // [D파트 추가]
+                .transactionId(disputeRequest.getTransaction().getTransactionId()) // [D파트 추가]
                 .disputeType(disputeRequest.getDisputeType())
+                .requestReason(disputeRequest.getRequestReason()) // [D파트 추가]
+                .requestAmount(disputeRequest.getRequestAmount()) // [D파트 추가]
                 .status(disputeRequest.getRequestStatus().name())
+                .adminResponse(disputeRequest.getAdminResponse()) // [D파트 추가]
                 .createdAt(disputeRequest.getRequestedAt())
+                .processedAt(disputeRequest.getProcessedAt()) // [D파트 추가]
                 .build();
     }
 }

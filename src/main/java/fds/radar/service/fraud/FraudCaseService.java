@@ -205,6 +205,7 @@ public class FraudCaseService {
             .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
             .priority(fraudCase.getPriority())
             .caseStatus(fraudCase.getCaseStatus())
+            .fraudDecision(fraudCase.getFraudDecision()) // [D파트 추가]
             .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
             .openedAt(fraudCase.getOpenedAt())
             .merchantName(merchant != null ? merchant.getMerchantName() : "-")
