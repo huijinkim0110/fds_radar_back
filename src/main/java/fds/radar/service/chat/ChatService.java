@@ -122,7 +122,7 @@ public class ChatService {
         ChatMessageDTO systemMessage = saveMessage(sessionId, ChatSenderType.SYSTEM, admin.getUserId(), "상담원(" + admin.getName() + ")이(가) 배정되었습니다.");
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, systemMessage);
 
-        ChatMessageDTO greeting = saveMessage(sessionId, ChatSenderType.ADMIN, admin.getUserId(), "안녕하세요. 상담원 " + admin.getName() + "입니다😊");
+        ChatMessageDTO greeting = saveMessage(sessionId, ChatSenderType.ADMIN, admin.getUserId(), "안녕하세요. 상담원 " + admin.getName() + "입니다😊\n무엇을 도와드릴까요?");
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, greeting);
     }
 
