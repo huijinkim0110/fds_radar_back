@@ -48,6 +48,22 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getSessionById(sessionId));
     }
 
+    // 사용자가 챗봇 위젯 열람 - 관리자 답장 읽음 처리
+    // PATCH /chat/sessions/{sessionId}/user-read
+    @PatchMapping("/{sessionId}/user-read")
+    public ResponseEntity<Void> markUserUnread(@PathVariable Long sessionId) {
+        chatService.markUserRead(sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 상담원 연결 요청 - 자동 배정
+    // POST /chat/sessions/{sessionId}/request-admin
+    @PostMapping("/{sessionId}/request-admin")
+    public ResponseEntity<Void> requestAdmin(@PathVariable  Long sessionId) {
+        chatService.requestAdmin(sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
     // 새 대화 시작 - 현재 세션 닫기
     // POST /chat/sessions/{sessionId}/close
     @PostMapping("/{sessionId}/close")

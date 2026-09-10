@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import fds.radar.common.ChatSessionStatus;
 import fds.radar.entity.chat.ChatSessions;
@@ -17,4 +20,18 @@ public interface ChatSessionsRepository extends JpaRepository<ChatSessions, Long
 
     // 사용자의 전체 세션 이력
     List<ChatSessions> findByUser_UserIdOrderByCreatedAtDesc(Long userId);
+
+    // WAITING 상태일 때만 원자적으로 IN_PROGRESS로 전환 + 관리자 배정(동시 요청 경쟁 방지)
+    @Modifying 
+    @Query(value="UPDATE chat_sessions SET status = 'IN_PROGRESS', assigned_admin_id = :adminId " +
+                 "WHERE session_id = :sessionId AND status = 'WAITING'", nativeQuery = true)
+    int markInProgressIfWaiting(@Param("sessionId") Long sessionId, @Param("adminId") Long adminId);
+
+    @Modifying 
+    @Query(value="UPDATE chat_sessions SET admin_unread = :adminUnread WHERE session_id = :sessionId", nativeQuery = true)
+    void updateAdminUnread(@Param("sessionId") Long sessionId, @Param("adminUnread") boolean adminUnread);
+
+    @Modifying 
+    @Query(value="UPDATE chat_sessions SET user_unread = :userUnread WHERE session_id = :sessionId", nativeQuery = true)
+    void updateUserUnread(@Param("sessionId") Long sessionId, @Param("userUnread") boolean userUnread);
 }

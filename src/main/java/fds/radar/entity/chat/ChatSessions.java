@@ -2,6 +2,8 @@ package fds.radar.entity.chat;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import fds.radar.common.ChatSessionStatus;
 import fds.radar.entity.user.Users;
 import jakarta.persistence.Entity;
@@ -20,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@DynamicUpdate 
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,10 +46,17 @@ public class ChatSessions {
     // null이면 "대기 중인 후속 질문 없음" -> 일반 분류 흐름으로 처리
     private String pendingContext;
 
-    // TODO: A 인증 만들어서 TEMP_ADMIN_ID 대체
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="assigned_admin_id", nullable=true)
     private Users assignedAdmin;
+
+    // 고객이 보낸 메시지 중 관리자가 아직 안 읽음
+    @Builder.Default
+    private boolean adminUnread = false;
+
+    // 관리자가 보낸 메시지를 사용자가 아직 안 읽음
+    @Builder.Default
+    private boolean userUnread = false;
 
     private LocalDateTime createdAt;
     private LocalDateTime closedAt;

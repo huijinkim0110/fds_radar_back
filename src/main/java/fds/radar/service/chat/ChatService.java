@@ -3,6 +3,7 @@ package fds.radar.service.chat;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ public class ChatService {
     private final ChatSessionsRepository chatSessionsRepository;
     private final ChatMessagesRepository chatMessagesRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // 활성 세션 조회 or 생성 - 사용자당 활성 세션은 항상 1개
     @Transactional
@@ -68,6 +70,7 @@ public class ChatService {
     }
 
     // 메시지 저장(BOT/USER/ADMIN 공용)
+    @Transactional 
     public ChatMessageDTO saveMessage(Long sessionId, ChatSenderType senderType, Long senderId, String content) {
         ChatSessions session = chatSessionsRepository.findById(sessionId)
                                                      .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
@@ -81,6 +84,16 @@ public class ChatService {
                                            .build();
 
         ChatMessages saved = chatMessagesRepository.save(message);
+
+        if (senderType == ChatSenderType.USER) {
+            chatSessionsRepository.updateAdminUnread(sessionId, true);
+            chatSessionsRepository.updateUserUnread(sessionId, false);
+            messagingTemplate.convertAndSend("/topic/admin/chats", sessionId);
+        } else if (senderType == ChatSenderType.ADMIN) {
+            chatSessionsRepository.updateAdminUnread(sessionId, false);
+            chatSessionsRepository.updateUserUnread(sessionId, true);
+        }
+
         return toMessageDTO(saved);
     }
 
@@ -93,19 +106,48 @@ public class ChatService {
         session.setPendingContext(pendingContext);
     }
 
+    // 사용자가 상담원 연결 요청 - 가장 한가한 관리자로 자동 배정 + 인사말 발송
+    @Transactional 
+    public void requestAdmin(Long sessionId) {
+        Users admin = userRepository.findLeastBusyAdmin().orElse(null);
+        if (admin == null) {
+            return; // 배정 가능한 관리자가 없으면 WAITING 상태 유지
+        }
+
+        int updated = chatSessionsRepository.markInProgressIfWaiting(sessionId, admin.getUserId());
+        if (updated == 0) {
+            return; // 이미 배정된 세션(중복 요청) - 무시
+        }
+
+        ChatMessageDTO systemMessage = saveMessage(sessionId, ChatSenderType.SYSTEM, admin.getUserId(), "상담원(" + admin.getName() + ")이(가) 배정되었습니다.");
+        messagingTemplate.convertAndSend("/topic/chat/" + sessionId, systemMessage);
+
+        ChatMessageDTO greeting = saveMessage(sessionId, ChatSenderType.ADMIN, admin.getUserId(), "안녕하세요. 상담원 " + admin.getName() + "입니다😊");
+        messagingTemplate.convertAndSend("/topic/chat/" + sessionId, greeting);
+    }
+
     // 관리자가 세션 열람 - WAITING -> IN_PROGRESS 전환
     @Transactional
     public void markInProgress(Long sessionId, Long adminId) {
-        ChatSessions session = chatSessionsRepository.findById(sessionId)
-                                                     .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+        chatSessionsRepository.updateAdminUnread(sessionId, false);
 
-        if (session.getStatus() == ChatSessionStatus.WAITING) {
-            Users admin = userRepository.findById(adminId)
-                                        .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
-
-            session.setStatus(ChatSessionStatus.IN_PROGRESS);
-            session.setAssignedAdmin(admin);
+        int updated = chatSessionsRepository.markInProgressIfWaiting(sessionId, adminId);
+        // updated == 0이면 이미 다른 요청이 먼저 처리했거나(중복 호출) 이미 IN_PROGRESS인 세션 - 조용히 무시
+        if (updated == 0) {
+            return;
         }
+        
+        Users admin = userRepository.findById(adminId)
+                                    .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
+
+        ChatMessageDTO systemMessage = saveMessage(sessionId, ChatSenderType.SYSTEM, adminId, "상담원(" + admin.getName() + ")이(가) 배정되었습니다.");
+        messagingTemplate.convertAndSend("/topic/chat/" + sessionId, systemMessage);
+    }
+
+    // 사용자가 챗봇 위젯을 열람 - 관리자 답장 읽음 처리
+    @Transactional 
+    public void markUserRead(Long sessionId) {
+        chatSessionsRepository.updateUserUnread(sessionId, false);
     }
 
     // 관리자용 - 미완료 세션 목록 (WAITING + IN_PROGRESS)
@@ -128,10 +170,13 @@ public class ChatService {
         return ChatSessionResponseDTO.builder()
                                      .sessionId(session.getSessionId())
                                      .userId(session.getUser().getUserId())
+                                     .userName(session.getUser().getName())
                                      .status(session.getStatus())
                                      .pendingContext(session.getPendingContext())
                                      .createdAt(session.getCreatedAt())
                                      .closedAt(session.getClosedAt())
+                                     .adminUnread(session.isAdminUnread())
+                                     .userUnread(session.isUserUnread())
                                      .messages(messages)
                                      .build();
     }
@@ -148,6 +193,7 @@ public class ChatService {
                                  .status(session.getStatus())
                                  .createdAt(session.getCreatedAt())
                                  .lastMessagePreview(preview)
+                                 .adminUnread(session.isAdminUnread())
                                  .build();
     }
 

@@ -20,4 +20,5 @@ public class ChatSessionListDTO {
     private ChatSessionStatus status;
     private LocalDateTime createdAt;
     private String lastMessagePreview; // 목록에서 마지막 메시지 미리보기
+    private boolean adminUnread;
 }
