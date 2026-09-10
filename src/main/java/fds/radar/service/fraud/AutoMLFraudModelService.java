@@ -51,39 +51,59 @@ public class AutoMLFraudModelService implements FraudModelService {
     }
 
     private FraudPrediction toFraudPrediction(AiPredictResponse response, TransactionData transactionData) {
-        String modelLabel = transactionData.getTransactionType() == fds.radar.common.TransactionType.CARD_PAYMENT
-                ? "AutoML"
-                : "HistGradientBoosting";
+    String modelLabel = transactionData.getTransactionType() == fds.radar.common.TransactionType.CARD_PAYMENT
+            ? "AutoML"
+            : "HistGradientBoosting";
 
-        boolean isAnomaly = response.isAnomaly();
+    boolean isAnomaly = response.isAnomaly();
+    double probability = response.getProbability();
+    fds.radar.common.PredictedFraudType fraudType = inferFraudType(transactionData, isAnomaly, probability);
 
-        return FraudPrediction.builder()
-                .fraudProbability(java.math.BigDecimal.valueOf(response.getProbability()))
-                .predictedResult(isAnomaly
-                        ? fds.radar.common.PredictedResult.FRAUD
-                        : fds.radar.common.PredictedResult.NORMAL)
-                .fraudType(inferFraudType(transactionData, isAnomaly))
-                .detectionReason(modelLabel + " 모델(FastAPI) 예측 결과")
-                .build();
+    return FraudPrediction.builder()
+            .fraudProbability(java.math.BigDecimal.valueOf(probability))
+            .predictedResult(isAnomaly
+                    ? fds.radar.common.PredictedResult.FRAUD
+                    : fds.radar.common.PredictedResult.NORMAL)
+            .fraudType(fraudType)
+            .detectionReason(buildDetectionReason(transactionData, isAnomaly, fraudType, modelLabel))
+            .build();
+}
+
+private fds.radar.common.PredictedFraudType inferFraudType(TransactionData data, boolean isAnomaly, double probability) {
+    if (!isAnomaly) {
+        return null;
     }
 
-    // AI 서버(FastAPI)가 이상확률만 주고 유형까지는 분류해주지 않아서,
-    // 이상거래로 판정된 건에 한해 거래 데이터 특징으로 유형을 추정함
-    // (관리자 상세화면 "이상유형" 표시 + 이상거래 분석 통계의 유형별 분포에 사용됨)
-    private fds.radar.common.PredictedFraudType inferFraudType(TransactionData data, boolean isAnomaly) {
-        if (!isAnomaly) {
-            return null;
-        }
+    boolean isHighConfidence = probability >= 0.6; // AI 확신도를 "고액 등 뚜렷한 신호" 기준으로 사용
+
+    if (data.getTransactionType() == fds.radar.common.TransactionType.CARD_PAYMENT) {
         boolean isForeign = data.getCountryCode() != null && !"KR".equalsIgnoreCase(data.getCountryCode());
-        if (isForeign) {
+        if (isForeign && isHighConfidence) {
             return fds.radar.common.PredictedFraudType.STOLEN_CARD;
         }
-        if (data.isNewRecipient()) {
+    } else if (data.getTransactionType() == fds.radar.common.TransactionType.ACCOUNT_TRANSFER) {
+        if (data.isNewRecipient() && isHighConfidence) {
             return fds.radar.common.PredictedFraudType.UNUSUAL_TRANSFER;
         }
-        return fds.radar.common.PredictedFraudType.OTHER_FRAUD_TYPE;
     }
 
+    return fds.radar.common.PredictedFraudType.OTHER_FRAUD_TYPE;
+}
+
+private String buildDetectionReason(TransactionData data, boolean isAnomaly,
+                                     fds.radar.common.PredictedFraudType fraudType, String modelLabel) {
+    if (!isAnomaly) {
+        return modelLabel + " 모델이 정상 거래로 판단했습니다.";
+    }
+    if (fraudType == fds.radar.common.PredictedFraudType.STOLEN_CARD) {
+        return "평소 이용 이력이 없는 해외 국가(" + data.getCountryCode() + ")에서 고액 결제가 발생하여 도난·분실 카드 사용이 의심됩니다.";
+    }
+    if (fraudType == fds.radar.common.PredictedFraudType.UNUSUAL_TRANSFER) {
+        return "이전에 거래한 적 없는 신규 수취인에게 고액이 이체되어 이상 송금이 의심됩니다.";
+    }
+    return "모델이 거래 패턴을 분석한 결과 이상거래 가능성이 높게 나타났습니다.";
+}
+    
     private AiPredictRequest toAiRequest(TransactionData data) {
         return AiPredictRequest.builder()
                 .transactionType(data.getTransactionType() != null ? data.getTransactionType().name() : null)

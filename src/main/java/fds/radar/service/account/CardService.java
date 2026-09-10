@@ -122,6 +122,4 @@ public void payWithCard(Long cardId, BigDecimal amount) {
 
     
 }
-
-
 }

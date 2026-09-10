@@ -61,6 +61,32 @@ public class FinancialGoalsService {
         return toResponseDTO(goal);
     }
 
+    // 목표별 진행금액 증분 반영(모의가입 납입/해지환불 등 자동 연동용)
+    // - updateCurrentAmount(수동 절대값 입력)와 별개 메서드
+    // - 목표금액 도달/미달에 따라 ACHIEVED <-> IN_PROGRESS 자동 전환(해지 환불로 다시 미달성되면 되돌림)
+    // - 이미 CANCELLED된 목표는 더 이상 반영하지 않음
+    @Transactional
+    public void adjustCurrentAmount(Long goalId, long delta) {
+        FinancialGoals goal = financialGoalsRepository.findById(goalId)
+                                                      .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+
+        if (goal.getGoalStatus() == GoalStatus.CANCELLED) {
+            return;
+        }
+
+        long updated = (goal.getCurrentAmount() != null ? goal.getCurrentAmount() : 0L) + delta;
+        if (updated < 0) updated = 0L;
+        goal.setCurrentAmount(updated);
+
+        if (updated >= goal.getTargetAmount() && goal.getGoalStatus() == GoalStatus.IN_PROGRESS) {
+            goal.setGoalStatus(GoalStatus.ACHIEVED);
+            goal.setCompletedAt(LocalDateTime.now());
+        } else if (updated < goal.getTargetAmount() && goal.getGoalStatus() == GoalStatus.ACHIEVED) {
+            goal.setGoalStatus(GoalStatus.IN_PROGRESS);
+            goal.setCompletedAt(null);
+        }
+    }
+
     // 목표 취소
     @Transactional
     public void cancelGoal(Long goalId) {

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Comparator; // [D파트 추가] getAllReports() 정렬용
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,6 +120,16 @@ public class FraudReportService {
                 .collect(Collectors.toList());
     }
 
+    // [D파트 추가] 관리자용 전체 신고 목록 조회 — 접수일시 최신순
+    @Transactional(readOnly = true)
+    public List<FraudReportResponse> getAllReports() {
+        return fraudReportRepostitory.findAll()
+                .stream()
+                .sorted(Comparator.comparing(FraudReports::getReportedAt).reversed())
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    } 
+
     // 신고 한 건 조회 (변경 없음)
     @Transactional(readOnly = true)
     public FraudReportResponse getReport(Long reportId) {
@@ -163,12 +174,18 @@ public class FraudReportService {
 
         return FraudReportResponse.builder()
                 .id(report.getFraudReportId())
+                .userId(report.getUser().getUserId()) // [D파트 추가]
+                .userEmail(report.getUser().getEmail()) // [D파트 추가]
                 .transactionId(
                         report.getTransaction().getTransactionId()
                 )
+                .transactionType(report.getTransaction().getTransactionType().name()) // [D파트 추가]
+                .reportTypeLabel(report.getReportType().getTypeName()) // [D파트 추가]
                 .reason(report.getReportContent())
                 .status(report.getReportStatus().name())
+                .statusLabel(report.getReportStatus().getStatusName()) // [D파트 추가]
                 .createdAt(report.getReportedAt())
+                .processedAt(report.getProcessedAt()) // [D파트 추가]
                 .build();
     }
 }

@@ -119,7 +119,6 @@ public class FraudAnalysisService {
                 .transactionId(fraudCase.getTransaction().getTransactionId())
 
                 .transactionType(fraudCase.getTransaction().getTransactionType())
-
                 .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
                 .priority(fraudCase.getPriority())
                 .caseStatus(fraudCase.getCaseStatus())

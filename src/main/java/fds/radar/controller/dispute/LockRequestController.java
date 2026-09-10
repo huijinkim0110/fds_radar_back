@@ -71,6 +71,12 @@ public class LockRequestController {
         return ResponseEntity.ok(lockRequestService.process(lockId, request));
     }
 
+    // [D파트 추가] 완료된 잠금 요청 해제(관리자)
+    @PatchMapping("/admin/{lockId}/release")
+    public ResponseEntity<LockRequestResponse> release(@PathVariable Long lockId) {
+        return ResponseEntity.ok(lockRequestService.release(lockId));
+    }
+
     // fraud_case 기반 자동잠금 (D 연동)
     @PostMapping("/from-fraud-case")
     public ResponseEntity<LockRequestResponse> createFromFraudCase(
