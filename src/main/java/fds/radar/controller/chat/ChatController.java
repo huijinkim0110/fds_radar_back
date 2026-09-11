@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.dto.chat.ChatActiveSessionResponseDTO;
 import fds.radar.dto.chat.ChatMessageDTO;
 import fds.radar.dto.chat.ChatPendingContextUpdateRequestDTO;
 import fds.radar.dto.chat.ChatSendMessageRequestDTO;
@@ -29,6 +30,20 @@ public class ChatController {
     @GetMapping
     public ResponseEntity<ChatSessionResponseDTO> getOrCreateSession(@RequestParam Long userId) {
         return ResponseEntity.ok(chatService.getOrCreateSession(userId));
+    }
+
+    // 상담원 세션 조회 or 생성 - "상담원 연결" 액션(배너/고객센터)에서 호출. 봇 세션과 별개 트릭
+    // GET /chat/sessions/admin?userId=1
+    @GetMapping("/admin")
+    public ResponseEntity<ChatSessionResponseDTO> getOrCreateAdminSession(@RequestParam Long userId) {
+        return ResponseEntity.ok(chatService.getOrCreateSession(userId));
+    }
+
+    // 챗봇 위젯을 열 때 배너 표시용 - 상담원 관련 진행 중 세션만 가볍게 확인(메시지 이력 없음)
+    // GET /chat/sessions/active-admin?userId=1
+    @GetMapping("/active-admin")
+    public ResponseEntity<ChatActiveSessionResponseDTO> getActiveAdminSession(@RequestParam Long userId) {
+        return ResponseEntity.ok(chatService.getActiveAdminSession(userId));
     }
     
     // 자유입력 메시지 저장(USER/BOT 공용) - FastAPI 응답을 받은 후 프론트에서 호출

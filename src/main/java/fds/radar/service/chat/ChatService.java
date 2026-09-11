@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.ChatSenderType;
 import fds.radar.common.ChatSessionStatus;
+import fds.radar.dto.chat.ChatActiveSessionResponseDTO;
 import fds.radar.dto.chat.ChatMessageDTO;
 import fds.radar.dto.chat.ChatSessionListDTO;
 import fds.radar.dto.chat.ChatSessionResponseDTO;
@@ -32,10 +33,33 @@ public class ChatService {
     // 활성 세션 조회 or 생성 - 사용자당 활성 세션은 항상 1개
     @Transactional
     public ChatSessionResponseDTO getOrCreateSession(Long userId) {
-        ChatSessions session = chatSessionsRepository.findByUser_UserIdAndStatusNot(userId, ChatSessionStatus.CLOSED)
+        ChatSessions session = chatSessionsRepository.findByUser_UserIdAndStatus(userId, ChatSessionStatus.OPEN)
                                                      .orElseGet(() -> createSession(userId));
 
         return toResponseDTOWithMessages(session);
+    }
+
+    // 상담원 세션 조회 or 생성 - 봇 세션(OPEN)과 별개 트릭. "상담원 연결" 액션(배너/고객센터)에서만 호출
+    @Transactional 
+    public ChatSessionResponseDTO getOrCreateAdminSession(Long userId) {
+        ChatSessions session = chatSessionsRepository.findByUser_UserIdAndStatusIn(userId, List.of(ChatSessionStatus.WAITING, ChatSessionStatus.IN_PROGRESS))
+                                                     .orElseGet(() -> createAdminSession(userId));
+
+        return toResponseDTOWithMessages(session);
+    }
+
+    private ChatSessions createAdminSession(Long userId) {
+        Users user = userRepository.findById(userId)
+                                   .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 생성 시점에 바로 WAITING으로 만들어서 OPEN(봇 세션)과 겹치지 않게 함 - 이어서 requestAdmin이 배정 시도
+        ChatSessions session = ChatSessions.builder()  
+                                           .user(user)
+                                           .status(ChatSessionStatus.WAITING)
+                                           .createdAt(LocalDateTime.now())
+                                           .build();
+
+        return chatSessionsRepository.save(session);
     }
 
     private ChatSessions createSession(Long userId) {
@@ -48,6 +72,18 @@ public class ChatService {
                                            .build();
         
         return chatSessionsRepository.save(session);
+    }
+
+    // 위젯을 열 때 배너 표시용 - 상담원 관련 진행 중(WAITING/IN_PROGRESS) 세션만 가볍게 확인
+    @Transactional(readOnly=true)
+    public ChatActiveSessionResponseDTO getActiveAdminSession(Long userId) {
+        return chatSessionsRepository.findByUser_UserIdAndStatusIn(userId, List.of(ChatSessionStatus.WAITING, ChatSessionStatus.IN_PROGRESS))
+                                     .map(session -> ChatActiveSessionResponseDTO.builder()
+                                                                                 .hasActiveSession(true)
+                                                                                 .sessionId(session.getSessionId())
+                                                                                 .status(session.getStatus())
+                                                                                 .build())
+                                     .orElse(ChatActiveSessionResponseDTO.builder().hasActiveSession(false).build());
     }
 
     // 세션 ID로 직접 조회(메시지 이력 포함)
@@ -111,13 +147,17 @@ public class ChatService {
     public void requestAdmin(Long sessionId) {
         Users admin = userRepository.findLeastBusyAdmin().orElse(null);
         if (admin == null) {
-            return; // 배정 가능한 관리자가 없으면 WAITING 상태 유지
+            chatSessionsRepository.markWaitingIfOpen(sessionId); // 배정 가능한 관리자가 없으면 OPEN -> WAITING 전환
+            messagingTemplate.convertAndSend("/topic/admin/chats", sessionId); // 새 상담 요청 발생 - 관리자 전역 알림용
+            return;
         }
 
         int updated = chatSessionsRepository.markInProgressIfWaiting(sessionId, admin.getUserId());
         if (updated == 0) {
             return; // 이미 배정된 세션(중복 요청) - 무시
         }
+
+        messagingTemplate.convertAndSend("/topic/admin/chats", sessionId); // 새 상담 요청 발생 - 관리자 전역 알림용
 
         ChatMessageDTO systemMessage = saveMessage(sessionId, ChatSenderType.SYSTEM, admin.getUserId(), "상담원(" + admin.getName() + ")이(가) 배정되었습니다.");
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, systemMessage);
