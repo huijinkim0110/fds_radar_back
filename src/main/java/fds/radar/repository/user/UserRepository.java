@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     // 상담원 자동 배정 - 현재 IN_PROGRESS 상담 건수가 가장 적은 ADMIN 한 명 조회
     @Query(value="SELECT u.* FROM users u " +
-                 "LEFT JOIN chat_sessions cs ON cs.assigned_admin_id = u.user_id AND cs.status = 'IN_PROGRESS' " +
+                 "LEFT JOIN chat_sessions cs ON cs.assigned_admin_id = u.user_id AND cs.status IN ('WAITING', 'IN_PROGRESS') " +
                  "WHERE u.role = 'ADMIN' " +
                  "GROUP BY u.user_id " + 
                  "ORDER BY COUNT(cs.session_id) ASC " +
