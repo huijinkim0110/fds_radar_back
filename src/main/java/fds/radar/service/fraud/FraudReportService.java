@@ -176,6 +176,7 @@ public class FraudReportService {
         return FraudReportResponse.builder()
                 .id(report.getFraudReportId())
                 .userId(report.getUser().getUserId()) // [D파트 추가]
+                .userName(report.getUser().getName())
                 .userEmail(report.getUser().getEmail()) // [D파트 추가]
                 .transactionId(
                         report.getTransaction().getTransactionId()
