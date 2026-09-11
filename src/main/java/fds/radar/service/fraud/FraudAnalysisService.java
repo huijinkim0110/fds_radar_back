@@ -117,6 +117,7 @@ public class FraudAnalysisService {
         return FraudCaseListResponse.builder()
                 .fraudCaseId(fraudCase.getFraudCaseId())
                 .transactionId(fraudCase.getTransaction().getTransactionId())
+
                 .transactionType(fraudCase.getTransaction().getTransactionType())
                 .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
                 .priority(fraudCase.getPriority())

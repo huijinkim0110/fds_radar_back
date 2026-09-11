@@ -100,6 +100,7 @@ public class FraudReportService {
                 .transaction(transaction)
                 .fraudCase(fraudCase)
                 .reportType(reportType) // [D파트 수정] 하드코딩된 DAMAGE_REPORT 대신 위에서 분기한 값 사용
+                .reasonCategory(request.getReasonCategory()) // [D파트 담당자 추가]
                 .reportContent(request.getReason())
                 .reportStatus(ReportStatus.RECEIVED)
                 .reportedAt(LocalDateTime.now())
@@ -181,6 +182,7 @@ public class FraudReportService {
                 )
                 .transactionType(report.getTransaction().getTransactionType().name()) // [D파트 추가]
                 .reportTypeLabel(report.getReportType().getTypeName()) // [D파트 추가]
+                .reasonCategory(report.getReasonCategory()) // [D파트 담당자 추가]
                 .reason(report.getReportContent())
                 .status(report.getReportStatus().name())
                 .statusLabel(report.getReportStatus().getStatusName()) // [D파트 추가]

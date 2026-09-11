@@ -48,8 +48,13 @@ public class FraudReports {
 
     @Enumerated(EnumType.STRING)
     private ReportType reportType;
+
+    // [D파트 담당자 추가] 선택형 신고 사유 (본인이 하지 않은 거래 / 결제 금액이 다름 / 중복 결제 / 알 수 없는 가맹점 / 이의제기 통합분 4개 등)
+    private String reasonCategory;
+
     @Column(columnDefinition = "TEXT")
     private String reportContent;
+
     @Enumerated(EnumType.STRING)
     private ReportStatus reportStatus;
 
