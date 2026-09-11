@@ -52,7 +52,21 @@ public class LoginHistoryService {
                 .attemptedAt(LocalDateTime.now())
                 .build();
 
+        // 새 로그인 기록 저장
         loginHistoriesRepository.save(histories);
+
+        // 해당 사용자의 로그인 기록을 최신순으로 전부 조회
+        List<LoginHistories> allHistories =
+                loginHistoriesRepository
+                        .findByUser_UserIdOrderByAttemptedAtDesc(userId);
+
+        // 최신 5개를 제외한 오래된 기록 삭제
+        if (allHistories.size() > 5) {
+            List<LoginHistories> oldHistories =
+                    allHistories.subList(5, allHistories.size());
+
+            loginHistoriesRepository.deleteAll(oldHistories);
+        }
     }
 
     // 로그인 기록 조회
@@ -60,7 +74,7 @@ public class LoginHistoryService {
     public List<LoginHistoriesResponse> getHistories(Long userId) {
 
         return loginHistoriesRepository
-                .findByUser_UserIdOrderByAttemptedAtDesc(userId)
+                .findTop5ByUser_UserIdOrderByAttemptedAtDesc(userId)
                 .stream()
                 .map(LoginHistoriesResponse::from)
                 .collect(Collectors.toList());

@@ -12,4 +12,8 @@ public interface LoginHistoriesRepository
     List<LoginHistories> findByUser_UserIdOrderByAttemptedAtDesc(
             Long userId
     );
+
+   List<LoginHistories> findTop5ByUser_UserIdOrderByAttemptedAtDesc(
+        Long userId
+);
 }
