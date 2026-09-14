@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fds.radar.common.ChatSenderType;
 import fds.radar.common.ChatSessionStatus;
+import fds.radar.dto.chat.AdminChatResponse;
 import fds.radar.dto.chat.ChatActiveSessionResponseDTO;
 import fds.radar.dto.chat.ChatMessageDTO;
 import fds.radar.dto.chat.ChatSessionListDTO;
@@ -16,6 +17,7 @@ import fds.radar.dto.chat.ChatSessionResponseDTO;
 import fds.radar.entity.chat.ChatMessages;
 import fds.radar.entity.chat.ChatSessions;
 import fds.radar.entity.user.Users;
+import fds.radar.exception.BusinessException;
 import fds.radar.repository.chat.ChatMessagesRepository;
 import fds.radar.repository.chat.ChatSessionsRepository;
 import fds.radar.repository.user.UserRepository;
@@ -108,6 +110,14 @@ public class ChatService {
     // 메시지 저장(BOT/USER/ADMIN 공용)
     @Transactional 
     public ChatMessageDTO saveMessage(Long sessionId, ChatSenderType senderType, Long senderId, String content) {
+        return saveMessage(sessionId, senderType, senderId, content, true);
+    }
+
+    // triggersInProgress=false로 넘기면 ADMIN 메시지여도 WAITING->IN_PROGRESS 전환을 일으키지 않음
+    // (자동배정 시 시스템이 대신 보내는 인사말 전용 - 관리자의 실제 응답 아님)
+    @Transactional 
+    public ChatMessageDTO saveMessage(Long sessionId, ChatSenderType senderType, Long senderId, String content, boolean triggersInProgress) {
+        
         ChatSessions session = chatSessionsRepository.findById(sessionId)
                                                      .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
 
@@ -128,6 +138,10 @@ public class ChatService {
         } else if (senderType == ChatSenderType.ADMIN) {
             chatSessionsRepository.updateAdminUnread(sessionId, false);
             chatSessionsRepository.updateUserUnread(sessionId, true);
+            if (triggersInProgress) {
+                // 관리자가 실제로 메시지를 보내는 시점 - WAITING이면 여기서 비로소 IN_PROGRESS로 전환
+                chatSessionsRepository.markInProgressIfWaitingStatus(sessionId);
+            }
         }
 
         return toMessageDTO(saved);
@@ -152,7 +166,9 @@ public class ChatService {
             return;
         }
 
-        int updated = chatSessionsRepository.markInProgressIfWaiting(sessionId, admin.getUserId());
+        // OPEN -> WAITING 전환 + 배정만 함(IN_PROGRESS 전환은 관리자가 실제 메시지를 보낼 때)
+        chatSessionsRepository.markWaitingIfOpen(sessionId);
+        int updated = chatSessionsRepository.assignAdminIfUnassigned(sessionId, admin.getUserId());
         if (updated == 0) {
             return; // 이미 배정된 세션(중복 요청) - 무시
         }
@@ -162,21 +178,37 @@ public class ChatService {
         ChatMessageDTO systemMessage = saveMessage(sessionId, ChatSenderType.SYSTEM, admin.getUserId(), "상담원(" + admin.getName() + ")이(가) 배정되었습니다.");
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, systemMessage);
 
-        ChatMessageDTO greeting = saveMessage(sessionId, ChatSenderType.ADMIN, admin.getUserId(), "안녕하세요. 상담원 " + admin.getName() + "입니다😊\n무엇을 도와드릴까요?");
+        ChatMessageDTO greeting = saveMessage(sessionId, ChatSenderType.ADMIN, admin.getUserId(), "안녕하세요. 상담원 " + admin.getName() + "입니다😊\n무엇을 도와드릴까요?", false);
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, greeting);
     }
 
-    // 관리자가 세션 열람 - WAITING -> IN_PROGRESS 전환
+    // 관리자가 세션 열람(클레임) - 배정만 하고 상태는 유지(IN_PROGRESS 전환은 실제 첫 메시지 전송 시)
+    // 이미 다른 관리자에게 배정된 세션이면 접근 차단
     @Transactional
     public void markInProgress(Long sessionId, Long adminId) {
+        ChatSessions session = chatSessionsRepository.findById(sessionId)
+                                                     .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+
+        Users assignedAdmin = session.getAssignedAdmin();
+        if (assignedAdmin != null && !assignedAdmin.getUserId().equals(adminId)) {
+            throw new BusinessException("CHAT_ACCESS_DENIED", 403, "접근 권한이 없습니다.");
+        }
+
+        if (session.getStatus() == ChatSessionStatus.CLOSED) {
+            return; // 종료된 상담은 이력 열람만
+        }
+
         chatSessionsRepository.updateAdminUnread(sessionId, false);
 
-        int updated = chatSessionsRepository.markInProgressIfWaiting(sessionId, adminId);
-        // updated == 0이면 이미 다른 요청이 먼저 처리했거나(중복 호출) 이미 IN_PROGRESS인 세션 - 조용히 무시
+        if (assignedAdmin != null) {
+            return; // 이미 내가 배정받은 세션 - 재열람일 뿐, 추가 처리 없음
+        }        
+
+        int updated = chatSessionsRepository.assignAdminIfUnassigned(sessionId, adminId);
         if (updated == 0) {
-            return;
+            return; // 동시 요청으로 다른 관리자가 먼저 배정받은 극히 드문 race - 조용히 무시
         }
-        
+
         Users admin = userRepository.findById(adminId)
                                     .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
 
@@ -192,13 +224,27 @@ public class ChatService {
 
     // 관리자용 - 미완료 세션 목록 (WAITING + IN_PROGRESS)
     @Transactional(readOnly=true)
-    public List<ChatSessionListDTO> getActiveSessions() {
-        List<ChatSessions> sessions = chatSessionsRepository.findByStatusInOrderByCreatedAtAsc(
-            List.of(ChatSessionStatus.WAITING, ChatSessionStatus.IN_PROGRESS));
-
+    public List<ChatSessionListDTO> getSessions(List<ChatSessionStatus> statuses, Long adminId) {
+        List<ChatSessions> sessions = (adminId != null)
+            ? chatSessionsRepository.findByAssignedAdmin_UserIdAndStatusInOrderByCreatedAtAsc(adminId, statuses)
+            : chatSessionsRepository.findByStatusInOrderByCreatedAtAsc(statuses);
         return sessions.stream()
                        .map(this::toListDTO)
                        .toList();
+    }
+
+    // 관리자 대시보드용 - 상담 현황 요약(FraudCaseAdminController에서 병합)
+    @Transactional(readOnly=true)
+    public AdminChatResponse getDashboardStats(Long adminId) {
+        long totalWaitingChatCount = chatSessionsRepository.countByStatus(ChatSessionStatus.WAITING);
+        long myWaitingChatCount = chatSessionsRepository.countByAssignedAdmin_UserIdAndStatus(adminId, ChatSessionStatus.WAITING);
+        long myInProgressChatCount = chatSessionsRepository.countByAssignedAdmin_UserIdAndStatus(adminId, ChatSessionStatus.IN_PROGRESS);
+
+        return AdminChatResponse.builder()
+                                    .totalWaitingChatCount(totalWaitingChatCount)
+                                    .myWaitingChatCount(myWaitingChatCount)
+                                    .myInProgressChatCount(myInProgressChatCount)
+                                    .build();
     }
 
     private ChatSessionResponseDTO toResponseDTOWithMessages(ChatSessions session) {

@@ -27,7 +27,7 @@ import fds.radar.dto.fraud.FraudConfirmationRequest;
 import fds.radar.dto.fraud.FraudDecisionRequest;
 import fds.radar.dto.fraud.FraudLockRequest;
 import fds.radar.dto.fraud.AdminUserResponse;
-import fds.radar.dto.fraud.AdminDashboardResponse;
+import fds.radar.dto.fraud.AdminFraudResponse;
 import fds.radar.dto.dispute.LockRequestCreateRequest;
 import fds.radar.dto.dispute.LockRequestProcessRequest;
 import fds.radar.dto.dispute.LockRequestResponse;
@@ -151,7 +151,7 @@ public class FraudCaseService {
                 .toList();
     }
 
-    public AdminDashboardResponse getDashboard(Long adminId) {
+    public AdminFraudResponse getDashboard(Long adminId) {
         long assignedCaseCount = fraudCaseRepository
                 .countByAssignedAdminId_UserIdAndCaseStatusNot(adminId, CaseStatus.CLOSED);
 
@@ -165,7 +165,7 @@ public class FraudCaseService {
         long closedCaseCount = fraudCaseRepository
                 .countByAssignedAdminId_UserIdAndCaseStatus(adminId, CaseStatus.CLOSED);
 
-        return AdminDashboardResponse.builder()
+        return AdminFraudResponse.builder()
                 .assignedCaseCount(assignedCaseCount)
                 .todayReceivedCaseCount(todayReceivedCaseCount)
                 .receivedCaseCount(receivedCaseCount)
