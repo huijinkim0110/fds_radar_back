@@ -21,4 +21,5 @@ public class ChatSessionListDTO {
     private LocalDateTime createdAt;
     private String lastMessagePreview; // 목록에서 마지막 메시지 미리보기
     private boolean adminUnread;
+    private String assignedAdminName; // 담당 관리자 이름 - 미배정(WAITING)이면 null
 }

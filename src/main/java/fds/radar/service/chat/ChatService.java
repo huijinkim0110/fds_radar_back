@@ -304,6 +304,7 @@ public class ChatService {
                                  .createdAt(session.getCreatedAt())
                                  .lastMessagePreview(preview)
                                  .adminUnread(session.isAdminUnread())
+                                 .assignedAdminName(session.getAssignedAdmin() != null ? session.getAssignedAdmin().getName() : null)
                                  .build();
     }
 
