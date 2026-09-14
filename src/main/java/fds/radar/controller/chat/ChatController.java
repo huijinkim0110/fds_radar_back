@@ -36,7 +36,7 @@ public class ChatController {
     // GET /chat/sessions/admin?userId=1
     @GetMapping("/admin")
     public ResponseEntity<ChatSessionResponseDTO> getOrCreateAdminSession(@RequestParam Long userId) {
-        return ResponseEntity.ok(chatService.getOrCreateSession(userId));
+        return ResponseEntity.ok(chatService.getOrCreateAdminSession(userId));
     }
 
     // 챗봇 위젯을 열 때 배너 표시용 - 상담원 관련 진행 중 세션만 가볍게 확인(메시지 이력 없음)
