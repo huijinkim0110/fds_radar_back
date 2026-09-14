@@ -1,6 +1,9 @@
 package fds.radar.controller.chat;
 
 import fds.radar.service.chat.ChatService;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,6 +18,7 @@ import fds.radar.dto.chat.ChatActiveSessionResponseDTO;
 import fds.radar.dto.chat.ChatMessageDTO;
 import fds.radar.dto.chat.ChatPendingContextUpdateRequestDTO;
 import fds.radar.dto.chat.ChatSendMessageRequestDTO;
+import fds.radar.dto.chat.ChatSessionListDTO;
 import fds.radar.dto.chat.ChatSessionResponseDTO;
 import lombok.RequiredArgsConstructor;
 
@@ -55,6 +59,13 @@ public class ChatController {
         
         ChatMessageDTO saved = chatService.saveMessage(sessionId, request.getSenderType(), request.getSenderId(), request.getContent());
         return ResponseEntity.ok(saved);
+    }
+
+    // 사용자 본인의 상담 내역 조회(마이페이지 메뉴)
+    // GET /chat/sessions/history?userId=1
+    @GetMapping("/history")
+    public ResponseEntity<List<ChatSessionListDTO>> getSessionHistory(@RequestParam Long userId) {
+        return ResponseEntity.ok(chatService.getSessionHistory(userId));
     }
 
     // 세션 ID로 직접 조회(관리자용 - userId 필요없음)

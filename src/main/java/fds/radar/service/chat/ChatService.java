@@ -257,6 +257,16 @@ public class ChatService {
                        .toList();
     }
 
+    // 사용자 본인의 상담 내역 - 봇 전용(OPEN) 세션은 제외, 상담원 관련 세션(WAITING/IN_PROGRESS/CLOSED)만 조회
+    @Transactional(readOnly=true)
+    public List<ChatSessionListDTO> getSessionHistory(Long userId) {
+        return chatSessionsRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
+                                     .stream()
+                                     .filter(session -> session.getStatus() != ChatSessionStatus.OPEN)
+                                     .map(this::toListDTO)
+                                     .toList();
+    }
+
     // 관리자 대시보드용 - 상담 현황 요약(FraudCaseAdminController에서 병합)
     @Transactional(readOnly=true)
     public AdminChatResponse getDashboardStats(Long adminId) {
@@ -302,8 +312,10 @@ public class ChatService {
                                  .userName(session.getUser().getName())
                                  .status(session.getStatus())
                                  .createdAt(session.getCreatedAt())
+                                 .closedAt(session.getClosedAt())
                                  .lastMessagePreview(preview)
                                  .adminUnread(session.isAdminUnread())
+                                 .assignedAdminName(session.getAssignedAdmin() != null ? session.getAssignedAdmin().getName() : null)
                                  .build();
     }
 
