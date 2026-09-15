@@ -22,6 +22,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/**", "/ws/**").permitAll()   // ws 경로 추가
                 .anyRequest().permitAll()
             );
 
@@ -39,7 +40,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(
-                List.of("http://localhost:5173")
+        List.of("http://localhost:5173", "http://3.34.234.112")
         );
 
         config.setAllowedMethods(
