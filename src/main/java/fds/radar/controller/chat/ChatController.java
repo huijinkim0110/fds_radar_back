@@ -78,10 +78,13 @@ public class ChatController {
     }
 
     // 세션 ID로 직접 조회(관리자용 - userId 필요없음)
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{sessionId}")
-    public ResponseEntity<ChatSessionResponseDTO> getSessionById(@PathVariable Long sessionId) {
-        return ResponseEntity.ok(chatService.getSessionById(sessionId));
+    public ResponseEntity<ChatSessionResponseDTO> getSessionById(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required=false) String guestId,
+            @PathVariable Long sessionId) {
+
+        return ResponseEntity.ok(chatService.getSessionById(sessionId, userId, guestId));
     }
 
     // 사용자가 챗봇 위젯 열람 - 관리자 답장 읽음 처리
@@ -120,10 +123,12 @@ public class ChatController {
     // pendingContext 갱신(FastAPI가 고정 문구 전송/후속 답변 처리 시 호출)
     @PatchMapping("/{sessionId}/pending-context")
     public ResponseEntity<Void> updatePendingContext(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam (required=false) String guestId,
             @PathVariable Long sessionId,
             @RequestBody ChatPendingContextUpdateRequestDTO request) {
 
-        chatService.updatePendingContext(sessionId, request.getPendingContext());
+        chatService.updatePendingContext(sessionId, userId, guestId, request.getPendingContext());
         return ResponseEntity.noContent().build();
     }
 }

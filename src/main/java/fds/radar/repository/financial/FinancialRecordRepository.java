@@ -13,6 +13,6 @@ public interface FinancialRecordRepository extends JpaRepository<FinancialRecord
     List<FinancialRecords> findByUser_UserIdAndFinancialCategory(Long userId, FinancialCategory financialCategory);
 
     // 본인 소유 기록 검증용
-    Optional<FinancialRecords> findByRecordIdAndUser_UserId(Long recordId, Long userId);
+    Optional<FinancialRecords> findByFinancialRecordIdAndUser_UserId(Long recordId, Long userId);
 
 }

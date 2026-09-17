@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fds.radar.config.OwnershipChecker;
@@ -28,6 +27,13 @@ public class FinancialProfileController {
     @GetMapping("/exists")
     public ResponseEntity<Boolean> hasProfile(@AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(financialProfileService.hasProfile(userId));
+    }
+
+    // 본인 프로필 - 토큰만으로 조회 (숫자 userId 모르는 클라이언트용)
+    @GetMapping("/me")
+    public ResponseEntity<FinancialProfileResponse> getMyProfile(@AuthenticationPrincipal Long userId) {
+        ownershipChecker.verify(userId); // 사실 본인이라 항상 통과하지만 일관성 위해 유지 가능, 또는 생략
+        return ResponseEntity.ok(financialProfileService.getProfile(userId));
     }
 
     @GetMapping("/{userId}")

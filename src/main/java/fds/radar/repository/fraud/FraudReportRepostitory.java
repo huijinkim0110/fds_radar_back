@@ -13,5 +13,5 @@ public interface FraudReportRepostitory extends JpaRepository<FraudReports, Long
     List<FraudReports> findByReportStatus(ReportStatus status);
 
     // 본인 소유 신고 검증용
-    Optional<FraudReports> findByReportIdAndUser_UserId(Long reportId, Long userId);
+    Optional<FraudReports> findByFraudReportIdAndUser_UserId(Long reportId, Long userId);
 }

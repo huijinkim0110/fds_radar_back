@@ -168,11 +168,13 @@ public class ChatService {
         }
     }
 
-    // 세션 ID로 직접 조회(메시지 이력 포함)
+    // 세션 ID로 직접 조회(메시지 이력 포함) - 관리자는 전체, 아니면 본인 세션만
     @Transactional(readOnly=true)
-    public ChatSessionResponseDTO getSessionById(Long sessionId) {
+    public ChatSessionResponseDTO getSessionById(Long sessionId, Long userId, String guestId) {
         ChatSessions session = chatSessionsRepository.findById(sessionId)
                                                      .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+
+        verifyAccess(session, userId, guestId);
 
         return toResponseDTOWithMessages(session);
     }
@@ -238,9 +240,11 @@ public class ChatService {
 
     // 세션의 pendingContext 갱신(고정 문구 전송 시 세팅, 후속 답변 처리 후 해제)
     @Transactional
-    public void updatePendingContext(Long sessionId, String pendingContext) {
+    public void updatePendingContext(Long sessionId, Long userId, String guestId, String pendingContext) {
         ChatSessions session = chatSessionsRepository.findById(sessionId)
                                                      .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다."));
+
+        verifyAccess(session, userId, guestId);
 
         session.setPendingContext(pendingContext);
     }

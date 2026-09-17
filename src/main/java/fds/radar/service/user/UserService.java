@@ -74,7 +74,7 @@ public class UserService {
     }
 
     // 로그인
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
 
         // 이메일로 회원 조회

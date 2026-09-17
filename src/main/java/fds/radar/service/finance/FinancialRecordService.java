@@ -65,7 +65,7 @@ public class FinancialRecordService {
     @Transactional(readOnly = true)
     public FinancialRecordResponse getRecord(Long userId, Long recordId) {
 
-        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
+        FinancialRecords record = financialRecordRepository.findByFinancialRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "금융 기록을 찾을 수 없습니다."
@@ -82,7 +82,7 @@ public class FinancialRecordService {
             Long recordId,
             FinancialRecordRequest request) {
 
-        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
+        FinancialRecords record = financialRecordRepository.findByFinancialRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "수정할 금융 기록을 찾을 수 없습니다."
@@ -110,7 +110,7 @@ public class FinancialRecordService {
     @Transactional
     public void delete(Long userId, Long recordId) {
 
-        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
+        FinancialRecords record = financialRecordRepository.findByFinancialRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "삭제할 금융 기록을 찾을 수 없습니다."
