@@ -46,11 +46,11 @@ public class UnifiedRecommendationService {
 
     // 증권 AI + 보험 AI + 예적금 규칙기반을 합쳐서 통합 추천 리스트 생성
     @Transactional
-    public UnifiedRecommendationResponseDTO getUnifiedRecommendations(RecommendationRequestDTO dto) {
-        InvestmentProfiles profile = investmentProfileService.getLatestProfile(dto.getUserId());
+    public UnifiedRecommendationResponseDTO getUnifiedRecommendations(Long userId, RecommendationRequestDTO dto) {
+        InvestmentProfiles profile = investmentProfileService.getLatestProfile(userId);
 
         // 진행중(IN_PROGRESS) 목표 중 가장 최근 것 자동 선택, 없으면 null
-        FinancialGoals goal = financialGoalsRepository.findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(dto.getUserId(), GoalStatus.IN_PROGRESS)
+        FinancialGoals goal = financialGoalsRepository.findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(userId, GoalStatus.IN_PROGRESS)
                                                       .orElse(null);
         boolean goalMissing = (goal == null);
         List<RecommendedProductDTO> allResults = new ArrayList<>();
@@ -76,7 +76,7 @@ public class UnifiedRecommendationService {
         List<RecommendedProductDTO> topFive = deduplicated.stream().limit(5).toList();
 
         // 7. 이력 저장
-        RecommendationResults saved = saveHistory(dto.getUserId(), profile, goal, topFive);
+        RecommendationResults saved = saveHistory(userId, profile, goal, topFive);
 
         return UnifiedRecommendationResponseDTO.builder()
                                                .recommendationResultId(saved.getRecommendationResultId())
@@ -124,8 +124,8 @@ public class UnifiedRecommendationService {
 
     // 특정 추천 이력에 포함된 상품 목록 조회
     @Transactional(readOnly=true)
-    public List<RecommendationItems> getHistoryItems(Long recommendationResultId) {
-        return recommendationItemsRepository.findByRecommendationResult_RecommendationResultIdOrderByRankingAsc(recommendationResultId);
+    public List<RecommendationItems> getHistoryItems(Long userId, Long recommendationResultId) {
+        return recommendationItemsRepository.findByRecommendationResult_RecommendationResultIdAndRecommendationResult_User_UserIdOrderByRankingAsc(recommendationResultId, userId);
     }
 
     // AI가 반환한 상품명을, 우리 DB의 실제 productId와 매칭

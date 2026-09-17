@@ -15,6 +15,7 @@ import fds.radar.dto.user.LoginResponse;
 import fds.radar.dto.user.SignUpRequest;
 import fds.radar.dto.user.SignUpResponse;
 import fds.radar.dto.user.PasswordResetRequest;
+import fds.radar.dto.user.RefreshTokenRequest;
 import fds.radar.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,17 @@ public class AuthController {
         LoginResponse response = userService.login(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping ("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(userService.refresh(request.getRefreshToken()));
+    }
+
+    @PostMapping ("/logout")
+    public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequest request) {
+        userService.logout(request.getRefreshToken());
+        return ResponseEntity.noContent().build();
     }
 
     //  비밀번로 재설정

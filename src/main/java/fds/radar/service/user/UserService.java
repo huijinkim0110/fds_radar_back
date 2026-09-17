@@ -1,7 +1,9 @@
 package fds.radar.service.user;
 
+import fds.radar.repository.user.RefreshTokenRepository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +18,7 @@ import fds.radar.dto.user.PasswordResetRequest;
 import fds.radar.dto.user.SignUpRequest;
 import fds.radar.dto.user.SignUpResponse;
 import fds.radar.dto.user.UserProfileResponse;
+import fds.radar.entity.user.RefreshTokens;
 import fds.radar.entity.user.Users;
 import fds.radar.repository.user.UserRepository;
 import fds.radar.service.security.JwtTokenProvider;
@@ -25,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 
+    private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -102,14 +106,54 @@ public class UserService {
                 user.getRole().name()
         );
 
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getUserId());
+
+        refreshTokenRepository.save(RefreshTokens.builder()
+                                                 .user(user)
+                                                 .token(refreshToken)
+                                                 .expiresAt(LocalDateTime.now().plusNanos(jwtTokenProvider.getRefreshExpirationMs()*1_000_000))
+                                                 .build());
+
         // 로그인 응답
         return new LoginResponse(
                 user.getUserId(),
                 user.getEmail(),
                 user.getName(),
                 user.getRole().name(),
-                token
+                token,
+                refreshToken
         );
+    }
+
+    // RefreshToken으로 accessToken 재발급
+    @Transactional 
+    public LoginResponse refresh(String refreshToken) {
+        RefreshTokens saved = refreshTokenRepository.findByToken(refreshToken)
+                                                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+        if (saved.isExpired() || !jwtTokenProvider.validateToken(refreshToken)) {
+            refreshTokenRepository.deleteByToken(refreshToken);
+            throw new IllegalArgumentException("만료된 토큰입니다. 다시 로그인해주세요.");
+        }
+
+        Users user = saved.getUser();
+
+        String newAccessToken = jwtTokenProvider.createToken(user.getUserId(), user.getRole().name());
+
+        return new LoginResponse(
+            user.getUserId(),
+            user.getEmail(),
+            user.getName(),
+            user.getRole().name(),
+            newAccessToken,
+            refreshToken
+        );
+    }
+
+    // 로그아웃 - refreshToken 서버측 무효화
+    @Transactional 
+    public void logout(String refreshToken) {
+        refreshTokenRepository.deleteByToken(refreshToken);
     }
 
     // 회원정보 조회

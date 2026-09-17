@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import fds.radar.dto.transaction.PaymentRequest;
@@ -16,7 +18,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/transactions")
-@CrossOrigin(origins = "*")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -28,7 +29,7 @@ public class TransactionController {
     // 카드 결제
     @PostMapping("/payment")
     public ResponseEntity<TransactionResponse> pay(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody PaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.pay(userId, request));
@@ -37,7 +38,7 @@ public class TransactionController {
     // 계좌 이체
     @PostMapping("/transfer")
     public ResponseEntity<TransactionResponse> transfer(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody TransferRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.transfer(userId, request));
@@ -46,7 +47,7 @@ public class TransactionController {
     // 내 거래내역
     @GetMapping
     public ResponseEntity<Page<TransactionResponse>> getMyTransactions(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             Pageable pageable) {
         return ResponseEntity.ok(transactionService.getMyTransactions(userId, pageable));
     }
@@ -54,12 +55,13 @@ public class TransactionController {
     // 거래 상세
     @GetMapping("/{txId}")
     public ResponseEntity<TransactionResponse> getTransaction(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long txId) {
         return ResponseEntity.ok(transactionService.getTransaction(userId, txId));
     }
 
     // 거래 상태 변경 (ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{txId}/status")
     public ResponseEntity<TransactionResponse> updateStatus(
             @PathVariable Long txId,

@@ -85,10 +85,10 @@ public class DisputeRequestService {
 
     // 이의제기 한 건 조회
     @Transactional(readOnly = true)
-    public DisputeRequestResponse getRequest(Long disputeRequestId) {
+    public DisputeRequestResponse getRequest(Long userId, Long disputeRequestId) {
 
         DisputeRequests disputeRequest =
-                disputeRequestRepository.findById(disputeRequestId)
+                disputeRequestRepository.findByDisputeRequestIdAndUser_UserId(disputeRequestId, userId)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "이의제기 내역을 찾을 수 없습니다."

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.user.DeviceRegisterRequest;
 import fds.radar.dto.user.DeviceResponse;
 import fds.radar.service.user.UserDeviceService;
@@ -24,11 +25,14 @@ import lombok.RequiredArgsConstructor;
 public class UserDeviceController {
 
     private final UserDeviceService userDeviceService;
+    private final OwnershipChecker ownershipChecker;
 
     @PostMapping
     public ResponseEntity<DeviceResponse> registerOrUpdateDevice(
             @PathVariable Long userId,
             @Valid @RequestBody DeviceRegisterRequest request) {
+
+        ownershipChecker.verify(userId);
 
         DeviceResponse response =
                 userDeviceService.registerOrUpdateDevice(userId, request);
@@ -42,6 +46,8 @@ public class UserDeviceController {
     public ResponseEntity<List<DeviceResponse>> getDevices(
             @PathVariable Long userId) {
 
+        ownershipChecker.verify(userId);
+
         return ResponseEntity.ok(
                 userDeviceService.getDevices(userId)
         );
@@ -52,7 +58,8 @@ public class UserDeviceController {
             @PathVariable Long userId,
             @PathVariable Long deviceId) {
 
-        userDeviceService.trustDevice(deviceId);
+        ownershipChecker.verify(userId);
+        userDeviceService.trustDevice(userId, deviceId);
 
         return ResponseEntity.ok().build();
     }
@@ -62,7 +69,8 @@ public class UserDeviceController {
             @PathVariable Long userId,
             @PathVariable Long deviceId) {
 
-        userDeviceService.blockDevice(deviceId);
+        ownershipChecker.verify(userId);
+        userDeviceService.blockDevice(userId, deviceId);
 
         return ResponseEntity.ok().build();
     }

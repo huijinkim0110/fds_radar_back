@@ -56,7 +56,7 @@ public class SuitabilityCheckService {
     // - 투자성향 진단 이력이 없으면 InvestmentProfileService에서 예외 발생
     // - 위험등급 / 투자기간 / 원금보장 3가지만 검사(금액은 가입단곙서)
     @Transactional
-    public SuitabilityChecks checkSuitability(SuitabilityCheckRequestDTO dto) {
+    public SuitabilityChecks checkSuitability(Long userId, SuitabilityCheckRequestDTO dto) {
         Users user = userRepository.findById(dto.getUserId())
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -64,7 +64,7 @@ public class SuitabilityCheckService {
                                                                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
         // 최신 투자성향 진단 결과 가져오기
-        InvestmentProfiles profile = investmentProfileService.getLatestProfile(dto.getUserId());
+        InvestmentProfiles profile = investmentProfileService.getLatestProfile(userId);
 
         boolean riskMatch = checkRiskMatch(profile.getRiskTendency(), product.getRiskLevel());
         boolean periodMatch = checkPeriodMatch(profile.getPreferredPeriod(), product.getSubscriptionPeriod());
@@ -73,7 +73,7 @@ public class SuitabilityCheckService {
 
         // 재무목표 참고 정보(판정에는 영향 없음)
         FinancialGoals goal = financialGoalsRepository
-            .findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(dto.getUserId(), GoalStatus.IN_PROGRESS)
+            .findFirstByUser_UserIdAndGoalStatusOrderByCreatedAtDesc(userId, GoalStatus.IN_PROGRESS)
             .orElse(null);
         Integer goalMonths = resolveGoalMonths(goal, profile.getPreferredPeriod());
         Boolean goalPeriodMatch = (goal == null) ? null

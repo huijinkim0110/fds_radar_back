@@ -46,7 +46,7 @@ public class FraudCaseHistories {
     private String actionContent;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="admin_id", nullable=false)
+    @JoinColumn(name="admin_id", nullable=true)
     private Users adminId;
 
     private LocalDateTime createdAt;

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import fds.radar.dto.dispute.LockRequestCreateRequest;
@@ -17,7 +19,6 @@ import fds.radar.common.LockRequestStatus;
 
 @RestController
 @RequestMapping("/api/locks")
-@CrossOrigin(origins = "*")
 public class LockRequestController {
 
     private final LockRequestService lockRequestService;
@@ -29,7 +30,7 @@ public class LockRequestController {
     // 유저 → 관리자 잠금/해제 요청
     @PostMapping
     public ResponseEntity<LockRequestResponse> requestByUser(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody LockRequestCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(lockRequestService.requestByUser(userId, request));
@@ -38,25 +39,27 @@ public class LockRequestController {
     // 내 잠금 요청 목록
     @GetMapping
     public ResponseEntity<List<LockRequestResponse>> getMyLockRequests(
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(lockRequestService.getMyLockRequests(userId));
     }
 
     // 잠금 요청 상세
     @GetMapping("/{lockId}")
     public ResponseEntity<LockRequestResponse> getLockRequest(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long lockId) {
         return ResponseEntity.ok(lockRequestService.getLockRequest(userId, lockId));
     }
 
     // 관리자 처리 대기 목록
+    @PreAuthorize ("hasRole('ADMIN')")
     @GetMapping("/admin/pending")
     public ResponseEntity<List<LockRequestResponse>> getReceivedRequests() {
         return ResponseEntity.ok(lockRequestService.getReceivedRequests());
     }
 
     // [D파트 담당자 추가] 관리자 대시보드 상태별 필터를 위해 전체/상태별 조회 API 추가
+    @PreAuthorize ("hasRole('ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<List<LockRequestResponse>> getAdminLockRequests(
             @RequestParam(required = false) LockRequestStatus requestStatus) {
@@ -64,6 +67,7 @@ public class LockRequestController {
     }
 
     // 관리자 승인/반려
+    @PreAuthorize ("hasRole('ADMIN')")
     @PatchMapping("/admin/{lockId}")
     public ResponseEntity<LockRequestResponse> process(
             @PathVariable Long lockId,
@@ -72,12 +76,15 @@ public class LockRequestController {
     }
 
     // [D파트 추가] 완료된 잠금 요청 해제(관리자)
+    @PreAuthorize ("hasRole('ADMIN')")
     @PatchMapping("/admin/{lockId}/release")
     public ResponseEntity<LockRequestResponse> release(@PathVariable Long lockId) {
         return ResponseEntity.ok(lockRequestService.release(lockId));
     }
 
     // fraud_case 기반 자동잠금 (D 연동)
+    // 혹시 모를 직접 호출 대비 ADMIN으로 제한
+    @PreAuthorize ("hasRole('ADMIN')")
     @PostMapping("/from-fraud-case")
     public ResponseEntity<LockRequestResponse> createFromFraudCase(
             @Valid @RequestBody LockRequestCreateRequest request) {

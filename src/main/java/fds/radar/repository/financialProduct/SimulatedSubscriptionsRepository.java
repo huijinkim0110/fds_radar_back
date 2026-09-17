@@ -1,6 +1,7 @@
 package fds.radar.repository.financialProduct;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,4 +14,7 @@ public interface SimulatedSubscriptionsRepository extends JpaRepository<Simulate
 
     // 스케줄러용 - 특정 상태 전체 조회(월 납입/만기 처리 대상 훑기)
     List<SimulatedSubscriptions> findBySubscriptionStatus(SubscriptionStatus status);
+
+    // 취소 시 본인 소유 검증용
+    Optional<SimulatedSubscriptions> findBySimulatedSubscriptionIdAndUser_UserId(Long simulatedSubscriptionId, Long userId);
 }

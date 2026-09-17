@@ -167,6 +167,7 @@ public class TransferRecipientService {
 
             // 카드 이용가능한도 차감
             cardService.payWithCard(
+                currentUser.getUserId(),
                 cardId,
                 transferAmount
             );

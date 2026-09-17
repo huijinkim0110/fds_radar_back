@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.user.NotificationRequest;
 import fds.radar.dto.user.NotificationResponse;
 import fds.radar.service.user.NotificationService;
@@ -24,11 +25,14 @@ import lombok.RequiredArgsConstructor;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final OwnershipChecker ownershipChecker;
 
     @PostMapping
     public ResponseEntity<NotificationResponse> createNotification(
             @PathVariable Long userId,
             @Valid @RequestBody NotificationRequest request) {
+
+        ownershipChecker.verify(userId);
 
         NotificationResponse response =
                 notificationService.createNotification(userId, request);
@@ -42,6 +46,8 @@ public class NotificationController {
     public ResponseEntity<List<NotificationResponse>> getNotifications(
             @PathVariable Long userId) {
 
+        ownershipChecker.verify(userId);
+
         return ResponseEntity.ok(
                 notificationService.getNotifications(userId)
         );
@@ -51,6 +57,8 @@ public class NotificationController {
     public ResponseEntity<Void> readNotification(
             @PathVariable Long userId,
             @PathVariable Long notificationId) {
+
+        ownershipChecker.verify(userId);
 
         notificationService.readNotification(
                 userId,

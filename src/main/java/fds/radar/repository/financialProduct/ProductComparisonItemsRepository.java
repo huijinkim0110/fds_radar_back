@@ -1,6 +1,7 @@
 package fds.radar.repository.financialProduct;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,4 +14,7 @@ public interface ProductComparisonItemsRepository extends JpaRepository<ProductC
 
     // 같은 비교함에 같은 상품이 이미 담겼는지 확인
     boolean existsByComparison_ComparisonIdAndProduct_ProductId(Long comparisonId, Long productId);
+
+    // 삭제 시 본인 비교함 소유 검증용 - comparisonItemId로 거슬러 올라가 유저 확인
+    Optional<ProductComparisonItems> findByComparisonItemIdAndComparison_User_UserId(Long comparisonItemId, Long userId);
 }

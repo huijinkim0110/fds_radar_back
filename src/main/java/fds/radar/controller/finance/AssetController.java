@@ -3,6 +3,7 @@ package fds.radar.controller.finance;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.finance.AssetRequest;
 import fds.radar.dto.finance.AssetResponse;
 import fds.radar.service.finance.AssetService;
@@ -25,12 +27,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class AssetController {
     
     private final AssetService assetService;
+    private final OwnershipChecker ownershipChecker;
 
     // 자산 등록
     @PostMapping("/users/{userId}")
     public ResponseEntity<AssetResponse> create(
         @PathVariable Long userId,
         @RequestBody AssetRequest request) {
+
+        ownershipChecker.verify(userId);
 
         AssetResponse response = 
                 assetService.create(userId, request);
@@ -44,6 +49,8 @@ public class AssetController {
     public ResponseEntity<List<AssetResponse>> getAssets(
             @PathVariable Long userId) {
 
+        ownershipChecker.verify(userId);
+
         List<AssetResponse> responses = 
                 assetService.getAssets(userId);
         
@@ -53,10 +60,11 @@ public class AssetController {
     // 자산 한 건 조회
     @GetMapping("/{assetId}")
     public ResponseEntity<AssetResponse> getAsset(
-            @PathVariable Long assetId) {
+                @AuthenticationPrincipal Long userId, 
+                @PathVariable Long assetId) {
 
         AssetResponse response = 
-                assetService.getAsset(assetId);
+                assetService.getAsset(userId, assetId);
 
         return ResponseEntity.ok(response);
     }
@@ -64,11 +72,12 @@ public class AssetController {
     // 자산 수정
     @PutMapping("/{assetId}")
     public ResponseEntity<AssetResponse> update(
+            @AuthenticationPrincipal Long userId, 
             @PathVariable Long assetId,
             @RequestBody AssetRequest request) {
 
         AssetResponse response =
-                assetService.update(assetId, request);
+                assetService.update(userId, assetId, request);
 
         return ResponseEntity.ok(response);
     }
@@ -76,9 +85,10 @@ public class AssetController {
     // 자산 삭제
     @DeleteMapping("/{assetId}")
     public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long assetId) {
 
-        assetService.delete(assetId);
+        assetService.delete(userId, assetId);
 
         return ResponseEntity.noContent().build();
 
@@ -88,6 +98,8 @@ public class AssetController {
     @GetMapping("/users/{userId}/total")
     public ResponseEntity<Long> getTotalAssets(
             @PathVariable Long userId) {
+
+        ownershipChecker.verify(userId);
 
         Long totalAssets =
                 assetService.getTotalAssets(userId);

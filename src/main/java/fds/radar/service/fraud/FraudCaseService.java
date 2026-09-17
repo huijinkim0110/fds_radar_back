@@ -55,11 +55,6 @@ public class FraudCaseService {
     private final LockRequestService lockRequestService;
     private final TransactionStatusService transactionStatusService;
 
-    // TODO: FraudCases.assignedAdminId, FraudCaseHistories.adminId가 둘 다 nullable=false라
-    // 자동생성 시점엔 실제 담당자가 없으므로 임시로 SYSTEM 계정(userId=1)을 사용.
-    // 5~6차에서 실제 담당자 배정 기능이 붙으면 이 상수는 제거 검토 필요.
-    private static final Long SYSTEM_ADMIN_ID = 1L;
-
     @Value("${fraud.threshold}")
     private java.math.BigDecimal threshold;
 
@@ -104,7 +99,7 @@ public class FraudCaseService {
                 .caseStatus(CaseStatus.RECEIVED)
                 .priority(priority)
                 .confirmation(UserConfirmation.NO_RESPONSE)
-                .assignedAdminId(Users.builder().userId(SYSTEM_ADMIN_ID).build())
+                .assignedAdminId(null)
                 .openedAt(LocalDateTime.now())
                 .build();
 
@@ -118,7 +113,7 @@ public class FraudCaseService {
 
         fraudCaseHistoryService.record(
                 saved, FraudActionType.HOLD, null, CaseStatus.RECEIVED,
-                historyMessage, SYSTEM_ADMIN_ID
+                historyMessage, null
         );
 
         return saved;
@@ -206,7 +201,9 @@ public class FraudCaseService {
             .priority(fraudCase.getPriority())
             .caseStatus(fraudCase.getCaseStatus())
             .fraudDecision(fraudCase.getFraudDecision()) // [D파트 추가]
-            .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
+            .assignedAdminId(fraudCase.getAssignedAdminId() != null
+                    ? fraudCase.getAssignedAdminId().getUserId()
+                    : null)
             .openedAt(fraudCase.getOpenedAt())
             .merchantName(merchant != null ? merchant.getMerchantName() : "-")
             .amount(transaction.getAmount())
@@ -256,7 +253,7 @@ public class FraudCaseService {
     }
 
     // 6차: 사건 상태 변경 (RECEIVED → INVESTIGATING → CLOSED)
-    public void updateCaseStatus(Long fraudCaseId, FraudCaseStatusRequest request) {
+    public void updateCaseStatus(Long actingAdminId, Long fraudCaseId, FraudCaseStatusRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
     
@@ -267,12 +264,6 @@ public class FraudCaseService {
 
     fraudCase.setCaseStatus(newStatus);
     fraudCaseRepository.save(fraudCase);
-
-    // 로그인 기능 반영: 프론트가 actingAdminId를 보내면 그걸 우선 사용.
-    // 아직 반영 안 된 화면 대비, 안 보내면 기존 방식(배정된 담당자)으로 fallback.
-    Long actingAdminId = request.getActingAdminId() != null
-            ? request.getActingAdminId()
-            : fraudCase.getAssignedAdminId().getUserId();
 
     fraudCaseHistoryService.record(
             fraudCase,
@@ -296,7 +287,7 @@ public class FraudCaseService {
     }
 
     // 6차: 담당 관리자 배정
-    public void assignAdmin(Long fraudCaseId, FraudCaseAssignRequest request) {
+    public void assignAdmin(Long actingAdminId, Long fraudCaseId, FraudCaseAssignRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
 
@@ -316,24 +307,23 @@ public class FraudCaseService {
         fraudCase.setAssignedAdminId(newAdmin);
         fraudCaseRepository.save(fraudCase);
 
-        // 배정을 실행한(로그인한) 관리자 우선, 없으면 기존처럼 새로 배정된 관리자 본인으로 fallback
-        Long actingAdminId = request.getActingAdminId() != null
-                ? request.getActingAdminId()
-                : newAdmin.getUserId();
+        String message = previousAdmin != null
+                ? "담당자가 '" + previousAdmin.getName() + "'에서 '" + newAdmin.getName() + "'(으)로 변경되었습니다."
+                : "담당자가 '" + newAdmin.getName() + "'(으)로 배정되었습니다.";
 
         fraudCaseHistoryService.record(
             fraudCase,
             FraudActionType.INVESTIGATE,
             fraudCase.getCaseStatus(),
             fraudCase.getCaseStatus(),
-            "담당자가 '" + previousAdmin.getName() + "'에서 '" + newAdmin.getName() + "'(으)로 변경되었습니다.",
+            message,
             actingAdminId
         );
     }
 
     // 6차: 사용자 본인거래 확인결과 반영
-    public void updateConfirmation(Long fraudCaseId, FraudConfirmationRequest request) {
-        FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
+    public void updateConfirmation(Long userId, Long fraudCaseId, FraudConfirmationRequest request) {
+        FraudCases fraudCase = fraudCaseRepository.findByFraudCaseIdAndUser_UserId(fraudCaseId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
     
         UserConfirmation confirmation = request.getConfirmation();
@@ -354,7 +344,7 @@ public class FraudCaseService {
     }
 
     // 8차: 카드/계좌 잠금 요청 처리 — 실제 LockRequestService 연동 (C 구현)
-    public void requestLock(Long fraudCaseId, FraudLockRequest request) {
+    public void requestLock(Long actingAdminId, Long fraudCaseId, FraudLockRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
 
@@ -391,11 +381,6 @@ public class FraudCaseService {
             failureMessage = e.getMessage();
         }
 
-        // 잠금을 요청한(로그인한) 관리자 우선, 없으면 기존처럼 사건 담당 관리자로 fallback
-        Long actingAdminId = request.getActingAdminId() != null
-                ? request.getActingAdminId()
-                : fraudCase.getAssignedAdminId().getUserId();
-
         fraudCaseHistoryService.record(
             fraudCase,
             FraudActionType.LOCK,
@@ -408,7 +393,7 @@ public class FraudCaseService {
     }
 
     // 9차: 최종 판정(정상/사기) + 사건 종결 처리
-    public void finalizeDecision(Long fraudCaseId, FraudDecisionRequest request) {
+    public void finalizeDecision(Long actingAdminId, Long fraudCaseId, FraudDecisionRequest request) {
         FraudCases fraudCase = fraudCaseRepository.findById(fraudCaseId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사건입니다. id=" + fraudCaseId));
 
@@ -429,8 +414,6 @@ public class FraudCaseService {
         fraudCase.setCaseStatus(CaseStatus.CLOSED);
         fraudCase.setClosedAt(LocalDateTime.now());
         fraudCaseRepository.save(fraudCase);
-
-        Long actingAdminId = fraudCase.getAssignedAdminId().getUserId();
 
         String decisionText = (decision == FraudDecision.FRAUD) ? "사기" : "정상";
 

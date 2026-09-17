@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.user.LoginHistoriesRequest;
 import fds.radar.dto.user.LoginHistoriesResponse;
 import fds.radar.service.user.LoginHistoryService;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class LoginHistoryController {
 
     private final LoginHistoryService loginHistoryService;
+    private final OwnershipChecker ownershipChecker;
 
     // 로그인 기록 저장
     @PostMapping
@@ -29,6 +31,8 @@ public class LoginHistoryController {
             @PathVariable Long userId,
             @RequestBody LoginHistoriesRequest request,
             HttpServletRequest httpRequest) {
+
+        ownershipChecker.verify(userId);
 
         String ipAddress = httpRequest.getRemoteAddr();
 
@@ -45,6 +49,8 @@ public class LoginHistoryController {
     @GetMapping
     public ResponseEntity<List<LoginHistoriesResponse>> getHistories(
             @PathVariable Long userId) {
+
+        ownershipChecker.verify(userId);
 
         return ResponseEntity.ok(
                 loginHistoryService.getHistories(userId)

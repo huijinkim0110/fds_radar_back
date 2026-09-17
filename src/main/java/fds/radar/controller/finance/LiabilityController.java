@@ -3,6 +3,7 @@ package fds.radar.controller.finance;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.finance.LiabilityRequest;
 import fds.radar.dto.finance.LiabilityResponse;
 import fds.radar.service.finance.LiabilityService;
@@ -26,12 +28,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LiabilityController {
     
     private final LiabilityService liabilityService;
+    private final OwnershipChecker ownershipChecker;
 
     // 부채 등록
     @PostMapping("/users/{userId}")
     public ResponseEntity<LiabilityResponse> create(
             @PathVariable Long userId,
             @RequestBody LiabilityRequest request) {
+
+        ownershipChecker.verify(userId);
 
         LiabilityResponse response = 
                 liabilityService.create(userId, request);
@@ -43,6 +48,8 @@ public class LiabilityController {
     @GetMapping("/users/{userId}")
     public ResponseEntity<List<LiabilityResponse>> getLiabilities(
             @PathVariable Long userId) {
+        
+        ownershipChecker.verify(userId);
 
         List<LiabilityResponse> responses =
                 liabilityService.getLiabilities(userId);
@@ -53,10 +60,11 @@ public class LiabilityController {
     // 부채 한 건 조회
     @GetMapping("/{liabilityId}")
     public ResponseEntity<LiabilityResponse> getLiability(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long liabilityId) {
 
         LiabilityResponse response = 
-                liabilityService.getLiability(liabilityId);
+                liabilityService.getLiability(userId, liabilityId);
         
         return ResponseEntity.ok(response);
     }
@@ -64,11 +72,12 @@ public class LiabilityController {
      // 부채 수정
     @PutMapping("/{liabilityId}")
     public ResponseEntity<LiabilityResponse> update(
+            @AuthenticationPrincipal Long userId, 
             @PathVariable Long liabilityId,
             @RequestBody LiabilityRequest request) {
 
         LiabilityResponse response =
-                liabilityService.update(liabilityId, request);
+                liabilityService.update(userId, liabilityId, request);
 
         return ResponseEntity.ok(response);
     }
@@ -76,9 +85,10 @@ public class LiabilityController {
     // 부채 삭제
     @DeleteMapping("/{liabilityId}")
     public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long liabilityId) {
 
-        liabilityService.delete(liabilityId);
+        liabilityService.delete(userId, liabilityId);
 
         return ResponseEntity.noContent().build();
     }
@@ -87,6 +97,8 @@ public class LiabilityController {
     @GetMapping("/users/{userId}/total")
     public ResponseEntity<Long> getTotalRemainingAmount(
             @PathVariable Long userId) {
+
+        ownershipChecker.verify(userId);
 
         Long totalRemainingAmount =
                 liabilityService.getTotalRemainingAmount(userId);
@@ -99,6 +111,8 @@ public class LiabilityController {
     public ResponseEntity<Double> getDsr(
             @PathVariable Long userId,
             @RequestParam Long annualIncome) {
+
+        ownershipChecker.verify(userId);
 
         Double dsr =
                 liabilityService.calculateDsr(userId, annualIncome);

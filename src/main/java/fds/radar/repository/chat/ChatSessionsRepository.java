@@ -21,6 +21,10 @@ public interface ChatSessionsRepository extends JpaRepository<ChatSessions, Long
     // 사용자의 상담원 관련 진행 중 세션 조회(WAITING/IN_PROGRESS) - 위젯 열 때 배너 표시용
     Optional<ChatSessions> findByUser_UserIdAndStatusIn(Long userId, List<ChatSessionStatus> statuses);
 
+    // 게스트(비로그인) 세션 조회 - 로그인 유저 버전과 동일한 역할, guestIdentifier 기준
+    Optional<ChatSessions> findByGuestIdentifierAndStatus(String guestIdentifier, ChatSessionStatus status);
+    Optional<ChatSessions> findByGuestIdentifierAndStatusIn(String guestIdentifier, List<ChatSessionStatus> statuses);
+
     // 관리자용 - WAITING(미배정) + IN_PROGRESS(본인이 배정된 것) 상태 세션 목록
     List<ChatSessions> findByStatusInOrderByCreatedAtAsc(List<ChatSessionStatus> statuses);
 

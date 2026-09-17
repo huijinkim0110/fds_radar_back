@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.user.UserProfileResponse;
 import fds.radar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,13 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final OwnershipChecker ownershipChecker;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
-            @PathVariable Long userId
-    ) {
+            @PathVariable Long userId) {
+
+        ownershipChecker.verify(userId);
         return ResponseEntity.ok(
                 userService.getUserProfile(userId)
         );

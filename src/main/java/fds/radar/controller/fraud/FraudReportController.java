@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import fds.radar.common.ReportStatus;
+import fds.radar.config.OwnershipChecker;
 import fds.radar.dto.fraud.FraudReportRequest;
 import fds.radar.dto.fraud.FraudReportResponse;
 import fds.radar.service.fraud.FraudReportService;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,12 +30,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class FraudReportController {
     
     private final FraudReportService fraudReportService;
+    private final OwnershipChecker ownershipChecker;
 
     // 피해 의심 거래 신고 접수
     @PostMapping("/users/{userId}")
     public ResponseEntity<FraudReportResponse> create(
             @PathVariable Long userId,
             @RequestBody FraudReportRequest request) {
+
+        ownershipChecker.verify(userId);
 
         FraudReportResponse response = 
                 fraudReportService.create(userId, request);
@@ -45,6 +51,8 @@ public class FraudReportController {
     public ResponseEntity<List<FraudReportResponse>> getReports(
             @PathVariable Long userId) {
 
+        ownershipChecker.verify(userId);
+
         List<FraudReportResponse> responses = 
                 fraudReportService.getReports(userId);
         
@@ -54,15 +62,17 @@ public class FraudReportController {
     // 신고 한 건 조회
     @GetMapping("/{reportId}")
     public ResponseEntity<FraudReportResponse> getReport(
+            @AuthenticationPrincipal Long userId, 
             @PathVariable Long reportId) {
 
         FraudReportResponse response = 
-                fraudReportService.getReport(reportId);
+                fraudReportService.getReport(userId, reportId);
 
         return ResponseEntity.ok(response);
     }
     
     // 관리자 신고 처리 상태 변경
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{reportId}/status")
     public ResponseEntity<FraudReportResponse> updateStatus(
             @PathVariable Long reportId,
@@ -75,6 +85,7 @@ public class FraudReportController {
     }
 
     // [D파트 추가] 관리자용 전체 신고 목록 조회
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<List<FraudReportResponse>> getAllReports() {
         return ResponseEntity.ok(fraudReportService.getAllReports());

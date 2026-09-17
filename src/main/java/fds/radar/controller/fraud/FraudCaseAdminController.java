@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import fds.radar.dto.fraud.FraudCaseAssignRequest;
 import fds.radar.dto.fraud.FraudCaseDetailResponse;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RestController
 @RequestMapping("/api/admin/fraud-cases")
+@PreAuthorize ("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class FraudCaseAdminController {
 
@@ -49,7 +51,7 @@ public class FraudCaseAdminController {
 
     // 관리자 마이페이지: 내 담당 사건 목록
     @GetMapping("/mypage/my-cases")
-    public ResponseEntity<List<FraudCaseListResponse>> getMyCases(@RequestParam Long adminId) {
+    public ResponseEntity<List<FraudCaseListResponse>> getMyCases(@AuthenticationPrincipal Long adminId) {
         return ResponseEntity.ok(fraudCaseService.getMyCases(adminId));
     }
 
@@ -69,33 +71,41 @@ public class FraudCaseAdminController {
 
     // 6차: 사건 상태 변경
     @PatchMapping("/{fraudCaseId}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable Long fraudCaseId,
-                                              @RequestBody FraudCaseStatusRequest request) {
-        fraudCaseService.updateCaseStatus(fraudCaseId, request);
+    public ResponseEntity<Void> updateStatus(
+            @AuthenticationPrincipal Long adminId,
+            @PathVariable Long fraudCaseId,
+            @RequestBody FraudCaseStatusRequest request) {
+        fraudCaseService.updateCaseStatus(adminId, fraudCaseId, request);
         return ResponseEntity.ok().build();
     }
 
     // 6차: 담당 관리자 배정
     @PatchMapping("/{fraudCaseId}/assignee")
-    public ResponseEntity<Void> assignAdmin(@PathVariable Long fraudCaseId,
-                                             @RequestBody FraudCaseAssignRequest request) {
-        fraudCaseService.assignAdmin(fraudCaseId, request);
+    public ResponseEntity<Void> assignAdmin(
+            @AuthenticationPrincipal Long adminId, 
+            @PathVariable Long fraudCaseId,
+            @RequestBody FraudCaseAssignRequest request) {
+        fraudCaseService.assignAdmin(adminId, fraudCaseId, request);
         return ResponseEntity.ok().build();
     }
 
     // 8차: 카드/계좌 잠금 요청
     @PostMapping("/{fraudCaseId}/lock")
-    public ResponseEntity<Void> requestLock(@PathVariable Long fraudCaseId,
-                                         @RequestBody FraudLockRequest request) {
-        fraudCaseService.requestLock(fraudCaseId, request);
+    public ResponseEntity<Void> requestLock(
+            @AuthenticationPrincipal Long adminId, 
+            @PathVariable Long fraudCaseId,
+            @RequestBody FraudLockRequest request) {
+        fraudCaseService.requestLock(adminId, fraudCaseId, request);
         return ResponseEntity.ok().build();
     }
 
     // 9차: 최종 판정(정상/사기)
     @PatchMapping("/{fraudCaseId}/decision")
-    public ResponseEntity<Void> finalizeDecision(@PathVariable Long fraudCaseId,
-                                                  @RequestBody FraudDecisionRequest request) {
-        fraudCaseService.finalizeDecision(fraudCaseId, request);
+    public ResponseEntity<Void> finalizeDecision(
+            @AuthenticationPrincipal Long adminId,
+            @PathVariable Long fraudCaseId,
+            @RequestBody FraudDecisionRequest request) {
+        fraudCaseService.finalizeDecision(adminId, fraudCaseId, request);
         return ResponseEntity.ok().build();
     }
 

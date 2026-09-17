@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import fds.radar.common.ChatSessionStatus;
 import fds.radar.entity.user.Users;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,8 +36,12 @@ public class ChatSessions {
     private Long sessionId;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name="user_id", nullable=true)
     private Users user;
+
+    // 비로그인 게스트 식별용 - 브라우저에서 생성한 UUID. user가 null일 때만 사용(둘 중 정확히 하나만 존재)
+    @Column (name="guest_identifier", length=100)
+    private String guestIdentifier;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

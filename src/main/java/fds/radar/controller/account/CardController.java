@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -35,8 +36,7 @@ public class CardController {
     @PostMapping
     public ResponseEntity<CardResponse> createCard(
         @Valid @RequestBody CardCreateRequest request,
-        // TODO: 로그인한 유저 정보 추출 (예: @AuthenticationPrincipal 또는 SecurityContextHolder)
-            @RequestParam Long userId // 임시로 파라미터나 시큐리티로 처리
+            @AuthenticationPrincipal Long userId // 임시로 파라미터나 시큐리티로 처리
     ) {
         CardResponse response = cardService.createCard(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -45,44 +45,47 @@ public class CardController {
     // 2. 내 카드 목록 조회 API
     @GetMapping
     public ResponseEntity<List<CardResponse>> getMyCards (
-        @RequestParam Long userId
+        @AuthenticationPrincipal Long userId
     ) {
         List<CardResponse> cards = cardService.getCardsByUserId(userId);
         return ResponseEntity.ok(cards);
     }
 
     // 3. 카드 이용한도 변경 API
-    @PatchMapping("/{cardId}/limit")
+    @PatchMapping("/{cardId}/limit") 
     public ResponseEntity<Void> updateCardLimit(
+        @AuthenticationPrincipal Long userId,
         @PathVariable Long cardId,
         @Valid @RequestBody CardLimitUpdateRequest request
     ) {
-        cardService.updateCardLimit(cardId, request.getCreditLimit());
+        cardService.updateCardLimit(userId, cardId, request.getCreditLimit());
         return ResponseEntity.ok().build();
     }
 
     // 카드 상태 변경 API
     @PatchMapping("/{cardId}/status")
     public ResponseEntity<Void> updateCardStatus(
+        @AuthenticationPrincipal Long userId,
         @PathVariable Long cardId,
         @Valid @RequestBody CardStatusUpdateRequest request
     ) {
-        cardService.updateCardStatus(cardId, request.getStatus());
+        cardService.updateCardStatus(userId, cardId, request.getStatus());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{cardId}/pay")
     public ResponseEntity<Void> pay(
+        @AuthenticationPrincipal Long userId,
         @PathVariable Long cardId,
         @RequestParam BigDecimal amount 
     ) {
-        cardService.payWithCard(cardId, amount);
+        cardService.payWithCard(userId, cardId, amount);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{cardId}")
 public ResponseEntity<Void> cancelCard(
-        @RequestParam Long userId,
+        @AuthenticationPrincipal Long userId,
         @PathVariable Long cardId) {
     cardService.cancelCard(userId, cardId);
     return ResponseEntity.ok().build();

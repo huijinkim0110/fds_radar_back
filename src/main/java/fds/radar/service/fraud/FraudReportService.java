@@ -133,8 +133,8 @@ public class FraudReportService {
 
     // 신고 한 건 조회 (변경 없음)
     @Transactional(readOnly = true)
-    public FraudReportResponse getReport(Long reportId) {
-        FraudReports report = fraudReportRepostitory.findById(reportId)
+    public FraudReportResponse getReport(Long userId, Long reportId) {
+        FraudReports report = fraudReportRepostitory.findByReportIdAndUser_UserId(reportId, userId)
                 .orElseThrow(() ->
                     new IllegalArgumentException(
                             "신고 내역을 찾을 수 없습니다."

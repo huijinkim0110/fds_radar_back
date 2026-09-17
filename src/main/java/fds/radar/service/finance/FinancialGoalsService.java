@@ -25,7 +25,7 @@ public class FinancialGoalsService {
     // 금융목표 등록
     // - 등록 시점엔 진행금액 0원, 상태는 IN_PROGRESS(기본값)
     @Transactional
-    public FinancialGoalResponseDTO createGoal(FinancialGoalRequestDTO dto) {
+    public FinancialGoalResponseDTO createGoal(Long userId, FinancialGoalRequestDTO dto) {
         Users user = userRepository.findById(dto.getUserId())
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -47,8 +47,8 @@ public class FinancialGoalsService {
     // 목표별 진행금액 수정
     // - 목표금액 이상으로 채워지면 자동으로 ACHIEVED 처리
     @Transactional
-    public FinancialGoalResponseDTO updateCurrentAmount(Long goalId, Long newCurrentAmount) {
-        FinancialGoals goal = financialGoalsRepository.findById(goalId)
+    public FinancialGoalResponseDTO updateCurrentAmount(Long userId, Long goalId, Long newCurrentAmount) {
+        FinancialGoals goal = financialGoalsRepository.findByGoalIdAndUser_UserId(goalId, userId)
                                                       .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
 
         goal.setCurrentAmount(newCurrentAmount);
@@ -89,8 +89,8 @@ public class FinancialGoalsService {
 
     // 목표 취소
     @Transactional
-    public void cancelGoal(Long goalId) {
-        FinancialGoals goal = financialGoalsRepository.findById(goalId)
+    public void cancelGoal(Long userId, Long goalId) {
+        FinancialGoals goal = financialGoalsRepository.findByGoalIdAndUser_UserId(goalId, userId)
                                                       .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
 
         goal.setGoalStatus(GoalStatus.CANCELLED);

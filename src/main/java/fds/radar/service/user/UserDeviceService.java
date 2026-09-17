@@ -62,9 +62,9 @@ public class UserDeviceService {
 
     // 신뢰 기기 등록
     @Transactional
-    public void trustDevice(Long deviceId) {
+    public void trustDevice(Long userId, Long deviceId) {
 
-        UserDevices devices = userDeviceRepository.findById(deviceId)
+        UserDevices devices = userDeviceRepository.findByDeviceIdAndUser_UserId(deviceId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "신뢰기기로 등록할 기기를 찾을 수 없습니다."
@@ -76,9 +76,9 @@ public class UserDeviceService {
 
     // 기기 차단
     @Transactional
-    public void blockDevice(Long deviceId) {
+    public void blockDevice(Long userId, Long deviceId) {
 
-        UserDevices devices = userDeviceRepository.findById(deviceId)
+        UserDevices devices = userDeviceRepository.findByDeviceIdAndUser_UserId(deviceId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "차단할 기기를 찾을 수 없습니다."

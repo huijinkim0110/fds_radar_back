@@ -57,7 +57,7 @@ public class FraudCases {
 
     // 배정된 담당 관리자
     @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="assigned_admin_id", nullable=false)
+    @JoinColumn(name="assigned_admin_id", nullable=true)
     private Users assignedAdminId;
 
     private LocalDateTime openedAt;

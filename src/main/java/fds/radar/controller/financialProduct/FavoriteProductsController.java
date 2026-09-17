@@ -3,6 +3,7 @@ package fds.radar.controller.financialProduct;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +26,7 @@ public class FavoriteProductsController {
     // 관심상품 등록
     @PostMapping
     public ResponseEntity<FavoriteProducts> addFavorite(
-           @RequestParam Long userId,
+           @AuthenticationPrincipal Long userId,
            @RequestParam Long productId) {
         
         FavoriteProducts result = favoriteProductsService.addFavorite(userId, productId);
@@ -44,18 +45,16 @@ public class FavoriteProductsController {
     }
 
     // 마이페이지 - 관심상품 목록 조회
-    // GET /favorite-products?userId=1
     @GetMapping
-    public ResponseEntity<List<ProductListResponseDTO>> getFavorites(@RequestParam Long userId) {
+    public ResponseEntity<List<ProductListResponseDTO>> getFavorites(@AuthenticationPrincipal Long userId) {
         List<ProductListResponseDTO> result = favoriteProductsService.getFavorites(userId);
         return ResponseEntity.ok(result);
     }
 
     // 상품 상세 페이지 - 이미 관심상품 등록됐는지 여부 확인
-    // GET /favorite-products/check?userId=1&productId=5
     @GetMapping("/check")
     public ResponseEntity<Boolean> isFavorite(
-           @RequestParam Long userId,
+           @AuthenticationPrincipal Long userId,
            @RequestParam Long productId) {
 
         boolean result = favoriteProductsService.isFavorite(userId, productId);

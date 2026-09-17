@@ -59,4 +59,7 @@ public interface FraudCaseRepository extends JpaRepository<FraudCases, Long> {
     // 위험도(priority)별 분포
     @Query("SELECT f.priority, COUNT(f) FROM FraudCases f GROUP BY f.priority")
     List<Object[]> countByPriority();
+
+    // 본인 확인용 - 사건 ID + 소유 유저 ID 동시 검증
+    Optional<FraudCases> findByFraudCaseIdAndUser_UserId(Long fraudCaseId, Long userId);
 }

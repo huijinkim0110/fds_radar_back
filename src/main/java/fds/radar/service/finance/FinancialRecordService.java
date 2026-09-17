@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class FinancialRecordSerive {
+public class FinancialRecordService {
     
     private final FinancialRecordRepository financialRecordRepository;
     private final UserRepository userRepository;
@@ -63,9 +63,9 @@ public class FinancialRecordSerive {
 
     // 수입/지출 기록 한 건 조회
     @Transactional(readOnly = true)
-    public FinancialRecordResponse getRecord(Long recordId) {
+    public FinancialRecordResponse getRecord(Long userId, Long recordId) {
 
-        FinancialRecords record = financialRecordRepository.findById(recordId)
+        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "금융 기록을 찾을 수 없습니다."
@@ -78,10 +78,11 @@ public class FinancialRecordSerive {
     // 수입/지출 기록 수정
     @Transactional
     public FinancialRecordResponse update(
+            Long userId,
             Long recordId,
             FinancialRecordRequest request) {
 
-        FinancialRecords record = financialRecordRepository.findById(recordId)
+        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "수정할 금융 기록을 찾을 수 없습니다."
@@ -107,9 +108,9 @@ public class FinancialRecordSerive {
 
     // 수입/지출 기록 삭제
     @Transactional
-    public void delete(Long recordId) {
+    public void delete(Long userId, Long recordId) {
 
-        FinancialRecords record = financialRecordRepository.findById(recordId)
+        FinancialRecords record = financialRecordRepository.findByRecordIdAndUser_UserId(recordId, userId)
                 .orElseThrow(() -> 
                     new IllegalArgumentException(
                             "삭제할 금융 기록을 찾을 수 없습니다."

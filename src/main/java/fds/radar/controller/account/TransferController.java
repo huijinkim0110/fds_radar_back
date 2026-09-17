@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import fds.radar.dto.account.TransferRecipientsCreateRequest;
@@ -13,7 +14,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/recipients")
-@CrossOrigin(origins = "*")
 public class TransferController {
 
     private final TransferRecipientService transferRecipientService;
@@ -25,7 +25,7 @@ public class TransferController {
     // 수취인 저장
     @PostMapping
     public ResponseEntity<TransferRecipientResponse> save(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody TransferRecipientsCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transferRecipientService.save(userId, request));
@@ -41,7 +41,7 @@ public class TransferController {
     // 수취인 삭제
     @DeleteMapping("/{recipientId}")
     public ResponseEntity<Void> delete(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long recipientId) {
         transferRecipientService.delete(userId, recipientId);
         return ResponseEntity.ok().build();

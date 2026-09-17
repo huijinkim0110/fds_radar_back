@@ -15,4 +15,7 @@ public interface UserDeviceRepository extends JpaRepository<UserDevices, Long> {
             Long userId,
             String deviceIdentifier
     );
+
+    // 신뢰/차단 처리 시 본인 소유 기기 검증용
+    Optional<UserDevices> findByDeviceIdAndUser_UserId(Long deviceId, Long userId);
 }

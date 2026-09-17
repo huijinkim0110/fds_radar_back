@@ -6,9 +6,10 @@ package fds.radar.controller.admin;
 */
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fds.radar.dto.admin.AdminDashboardResponse;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController 
 @RequestMapping ("/api/admin/dashboard")
+@PreAuthorize ("hasRole('ADMIN')")
 @RequiredArgsConstructor 
 public class AdminDashboardController {
     
@@ -27,10 +29,8 @@ public class AdminDashboardController {
     private final ChatService chatService;
 
     // 관리자 마이페이지 대시보드 조회
-    // TODO(로그인 기능 붙으면 수정): 지금은 로그인 기능이 없어서 adminId를 쿼리 파라미터로 임시로 받음.
-    // 나중에 SecurityContextHolder에서 로그인한 관리자 id를 꺼내는 방식으로 교체
     @GetMapping ("/mypage")
-    public ResponseEntity<AdminDashboardResponse> getDashboard(@RequestParam Long adminId) {
+    public ResponseEntity<AdminDashboardResponse> getDashboard(@AuthenticationPrincipal Long adminId) {
         AdminFraudResponse fraudDashboard = fraudCaseService.getDashboard(adminId);
         AdminChatResponse chatDashboard = chatService.getDashboardStats(adminId);
 

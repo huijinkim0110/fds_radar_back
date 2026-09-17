@@ -14,4 +14,6 @@ public class ChatSendMessageRequestDTO {
     private ChatSenderType senderType;
     private Long senderId; // BOT이면 null
     private String content;
+    private Long userId;
+    private String guestId;
 }

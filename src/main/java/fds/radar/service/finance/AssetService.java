@@ -61,9 +61,9 @@ public class AssetService {
 
     // 자산 한 건 조회
     @Transactional(readOnly = true)
-    public AssetResponse getAsset(Long assetId) {
+    public AssetResponse getAsset(Long userId, Long assetId) {
 
-        Assets asset = assetRepository.findById(assetId)
+        Assets asset = assetRepository.findByAssetIdAndUser_UserId(assetId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("자산을 찾을 수 없습니다.")
                 );
@@ -74,10 +74,11 @@ public class AssetService {
     // 자산 수정
     @Transactional
     public AssetResponse update(
+            Long userId,
             Long assetId,
             AssetRequest request) {
 
-        Assets asset = assetRepository.findById(assetId)
+        Assets asset = assetRepository.findByAssetIdAndUser_UserId(assetId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("수정할 자산을 찾을 수 없습니다.")
                 );
@@ -96,9 +97,9 @@ public class AssetService {
 
     // 자산 삭제
     @Transactional
-    public void delete(Long assetId) {
+    public void delete(Long userId, Long assetId) {
 
-        Assets asset = assetRepository.findById(assetId)
+        Assets asset = assetRepository.findByAssetIdAndUser_UserId(assetId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("삭제할 자산을 찾을 수 없습니다.")
                 );

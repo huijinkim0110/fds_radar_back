@@ -61,8 +61,8 @@ public class SimulatedSubscriptionsService {
     // - INSTALLMENT : monthlyPayment 매월 납입, 적금식 단리 계산
     // - MIXED : 초기 initialAmount + 매월 monthlyPayment 병행, 두 계산을 합산
     @Transactional
-    public SubscriptionResponseDTO subscribe(SubscriptionRequestDTO dto) {
-        Users user = userRepository.findById(dto.getUserId())
+    public SubscriptionResponseDTO subscribe(Long userId, SubscriptionRequestDTO dto) {
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         FinancialProducts product = financialProductsRepository.findById(dto.getProductId())
@@ -71,7 +71,7 @@ public class SimulatedSubscriptionsService {
         validatePaymentMethod(product, dto);
         validateAmount(dto, product);
 
-        Accounts owned = accountRepository.findByAccountIdAndUser_UserId(dto.getAccountId(), dto.getUserId())
+        Accounts owned = accountRepository.findByAccountIdAndUser_UserId(dto.getAccountId(), userId)
                 .orElseThrow(() -> new NotFoundException("계좌를 찾을 수 없습니다."));
 
         if (owned.getAccountStatus() != AccountStatus.ACTIVE) {
@@ -80,7 +80,7 @@ public class SimulatedSubscriptionsService {
 
         FinancialGoals goal = null;
         if (dto.getGoalId() != null) {
-            goal = financialGoalsRepository.findByGoalIdAndUser_UserId(dto.getGoalId(), dto.getUserId())
+            goal = financialGoalsRepository.findByGoalIdAndUser_UserId(dto.getGoalId(), userId)
                     .orElseThrow(() -> new NotFoundException("목표를 찾을 수 없습니다."));
             if (goal.getGoalStatus() != GoalStatus.IN_PROGRESS) {
                 throw new BusinessException("진행중인 목표만 연결할 수 있습니다.");
@@ -142,8 +142,8 @@ public class SimulatedSubscriptionsService {
     }
 
     @Transactional
-    public void cancel(Long simulatedSubscriptionId) {
-        SimulatedSubscriptions subscription = simulatedSubscriptionsRepository.findById(simulatedSubscriptionId)
+    public void cancel(Long userId, Long simulatedSubscriptionId) {
+        SimulatedSubscriptions subscription = simulatedSubscriptionsRepository.findBySimulatedSubscriptionIdAndUser_UserId(simulatedSubscriptionId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("가입 내역을 찾을 수 없습니다."));
 
         if (subscription.getSubscriptionStatus() != SubscriptionStatus.ACTIVE) {

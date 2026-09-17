@@ -74,23 +74,23 @@ public class CardService {
 
     // 3. 카드 이용한도 변경
     @Transactional
-    public void updateCardLimit(Long cardId, BigDecimal creditLimit) {
-        Cards card = cardRepository.findById(cardId)
+    public void updateCardLimit(Long userId, Long cardId, BigDecimal creditLimit) {
+        Cards card = cardRepository.findByCardIdAndUser_UserId(cardId, userId)
             .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
         card.setCreditLimit(creditLimit);
     }
 
     // 4. 카드 상태 변경
     @Transactional
-    public void updateCardStatus(Long cardId, CardStatus status) {
-        Cards card = cardRepository.findById(cardId)
+    public void updateCardStatus(Long userId, Long cardId, CardStatus status) {
+        Cards card = cardRepository.findByCardIdAndUser_UserId(cardId, userId)
             .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
         card.setStatus(status);
     }
 
     // 5. 카드 해지
     @Transactional
-public void cancelCard(Long userId, Long cardId) {
+    public void cancelCard(Long userId, Long cardId) {
     Cards card = cardRepository.findByCardIdAndUser_UserId(cardId, userId)
         .orElseThrow(() -> new NotFoundException("카드를 찾을 수 없습니다."));
     
@@ -101,25 +101,27 @@ public void cancelCard(Long userId, Long cardId) {
     card.setStatus(CardStatus.CANCELLED);
 }
 
-    @Transactional
-public void payWithCard(Long cardId, BigDecimal amount) {
+    @Transactional 
+    public void payWithCard(Long userId, Long cardId, BigDecimal amount) {
 
-    Cards card = cardRepository.findByCardIdForUpdate(cardId)
-        .orElseThrow(() ->
-            new NotFoundException("카드를 찾을 수 없습니다."));
+        Cards card = cardRepository.findByCardIdForUpdate(cardId)
+            .orElseThrow(() ->
+                new NotFoundException("카드를 찾을 수 없습니다."));
 
-    if (card.getAvailableLimit().compareTo(amount) < 0) {
-        throw new BusinessException("사용 가능한도가 부족합니다.");
+        if (!card.getUser().getUserId().equals(userId)) {
+            throw new NotFoundException("카드를 찾을 수 없습니다.");
+        }
+        
+        if (card.getAvailableLimit().compareTo(amount) < 0) {
+            throw new BusinessException("사용 가능한도가 부족합니다.");
+        }
+
+        BigDecimal newLimit =
+            card.getAvailableLimit().subtract(amount);
+
+        card.setAvailableLimit(newLimit);
+
+        // DB에 명시적으로 저장
+        cardRepository.save(card);    
     }
-
-    BigDecimal newLimit =
-        card.getAvailableLimit().subtract(amount);
-
-    card.setAvailableLimit(newLimit);
-
-    // DB에 명시적으로 저장
-    cardRepository.save(card);
-
-    
-}
 }

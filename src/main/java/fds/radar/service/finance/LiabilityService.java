@@ -65,9 +65,9 @@ public class LiabilityService {
 
     // 부채 한 건 조회
     @Transactional(readOnly = true)
-    public LiabilityResponse getLiability(Long liabilityId) {
+    public LiabilityResponse getLiability(Long userId, Long liabilityId) {
 
-        Liabilities liability = liabilityRepository.findById(liabilityId)
+        Liabilities liability = liabilityRepository.findByLiabilityIdAndUser_UserId(liabilityId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("부채 정보를 찾을 수 없습니다.")
                 );
@@ -78,10 +78,11 @@ public class LiabilityService {
     // 부채 수정
     @Transactional
     public LiabilityResponse update(
+            Long userId,
             Long liabilityId,
             LiabilityRequest request) {
 
-        Liabilities liability = liabilityRepository.findById(liabilityId)
+        Liabilities liability = liabilityRepository.findByLiabilityIdAndUser_UserId(liabilityId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("수정할 부채 정보를 찾을 수 없습니다.")
                 );
@@ -109,9 +110,9 @@ public class LiabilityService {
 
     // 부채 삭제
     @Transactional
-    public void delete(Long liabilityId) {
+    public void delete(Long userId, Long liabilityId) {
 
-        Liabilities liability = liabilityRepository.findById(liabilityId)
+        Liabilities liability = liabilityRepository.findByLiabilityIdAndUser_UserId(liabilityId, userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("삭제할 부채 정보를 찾을 수 없습니다.")
                 );

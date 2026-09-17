@@ -122,7 +122,9 @@ public class FraudAnalysisService {
                 .fraudProbability(fraudCase.getDetectionResult().getFraudProbability())
                 .priority(fraudCase.getPriority())
                 .caseStatus(fraudCase.getCaseStatus())
-                .assignedAdminId(fraudCase.getAssignedAdminId().getUserId())
+                .assignedAdminId(fraudCase.getAssignedAdminId() != null
+                        ? fraudCase.getAssignedAdminId().getUserId()
+                        : null)
                 .openedAt(fraudCase.getOpenedAt())
                 .build();
     }

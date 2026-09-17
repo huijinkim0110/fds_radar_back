@@ -75,10 +75,11 @@ public class FinancialProfileService {
     // 있으면 수정, 없으면 등록
     @Transactional
     public FinancialProfileResponse upsertProfile(
+            Long userId,
             FinancialProfileRequest request) {
 
         Users user = userRepository
-                .findById(request.getUserId())
+                .findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다.")
                 );
@@ -88,7 +89,7 @@ public class FinancialProfileService {
 
         FinancialProfiles profile =
                 financialProfileRepository
-                        .findByUser_UserId(request.getUserId())
+                        .findByUser_UserId(userId)
                         .orElseGet(() ->
                                 FinancialProfiles.builder()
                                         .user(user)

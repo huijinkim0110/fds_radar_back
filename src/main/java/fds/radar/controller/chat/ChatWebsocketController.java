@@ -20,7 +20,7 @@ public class ChatWebsocketController {
     // 클라이언트가 /app/chat/{sessionId}로 전송 -> 저장 후 /topic/chat/{sessionId}로 브로드캐스트
     @MessageMapping("/chat/{sessionId}")
     public void sendMessage(@DestinationVariable Long sessionId, ChatSendMessageRequestDTO request) {
-        ChatMessageDTO saved = chatService.saveMessage(sessionId, request.getSenderType(), request.getSenderId(), request.getContent());
+        ChatMessageDTO saved = chatService.saveMessage(sessionId, request.getUserId(), request.getGuestId(), request.getSenderType(), request.getSenderId(), request.getContent());
         messagingTemplate.convertAndSend("/topic/chat/" + sessionId, saved);
     }
 }

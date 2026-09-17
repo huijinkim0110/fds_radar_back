@@ -11,6 +11,7 @@ import fds.radar.entity.financialProduct.FinancialProducts;
 import fds.radar.entity.financialProduct.ProductComparisonItems;
 import fds.radar.entity.financialProduct.ProductComparisons;
 import fds.radar.entity.user.Users;
+import fds.radar.exception.NotFoundException;
 import fds.radar.repository.financialProduct.FinancialProductsRepository;
 import fds.radar.repository.financialProduct.ProductComparisonItemsRepository;
 import fds.radar.repository.financialProduct.ProductComparisonsRepository;
@@ -43,12 +44,12 @@ public class ProductComparisonsService {
     // 비교함에 상품 추가
     // - 이미 담긴 상품이면 예외 발생
     @Transactional
-    public ProductComparisonItems addItem(Long comparisonId, Long productId) {
+    public ProductComparisonItems addItem(Long userId, Long comparisonId, Long productId) {
         if (productComparisonItemsRepository.existsByComparison_ComparisonIdAndProduct_ProductId(comparisonId, productId)) {
             throw new IllegalStateException("이미 비교함에 담긴 상품입니다.");
         }
 
-        ProductComparisons comparison = productComparisonsRepository.findById(comparisonId)
+        ProductComparisons comparison = productComparisonsRepository.findByComparisonIdAndUser_UserId(comparisonId, userId)
                                                                     .orElseThrow(() -> new IllegalArgumentException("비교함을 찾을 수 없습니다."));
 
         FinancialProducts product = financialProductsRepository.findById(productId)
@@ -64,14 +65,17 @@ public class ProductComparisonsService {
 
     // 비교함에서 상품 삭제
     @Transactional
-    public void removeItem(Long comparisonItemId) {
-        productComparisonItemsRepository.deleteById(comparisonItemId);
+    public void removeItem(Long userId, Long comparisonItemId) {
+        ProductComparisonItems item = productComparisonItemsRepository.findByComparisonItemIdAndComparison_User_UserId(comparisonItemId, userId)
+                                        .orElseThrow(() -> new NotFoundException("비교함 항목을 찾을 수 없습니다."));
+
+        productComparisonItemsRepository.delete(item);
     }
 
     // 비교함 상세 조회 - 담긴 상품들을 금리/윟머등급/가입기간 나란히 비교할 수 있는 형태로 조회
     @Transactional(readOnly=true)
-    public ComparisonDetailResponseDTO getComparisonDetail(Long comparisonId) {
-        ProductComparisons comparison = productComparisonsRepository.findById(comparisonId)
+    public ComparisonDetailResponseDTO getComparisonDetail(Long userId, Long comparisonId) {
+        ProductComparisons comparison = productComparisonsRepository.findByComparisonIdAndUser_UserId(comparisonId, userId)
                                                                     .orElseThrow(() -> new IllegalArgumentException("비교함을 찾을 수 없습니다."));
 
         List<ProductComparisonItems> items = productComparisonItemsRepository.findByComparison_ComparisonId(comparisonId);
@@ -110,8 +114,8 @@ public class ProductComparisonsService {
 
     // 비교함 이름 저장(변경) - 담긴 상품은 그대로 두고 이름만 바꿈
     @Transactional
-    public ProductComparisons renameComparison(Long comparisonId, String comparisonName) {
-        ProductComparisons comparison = productComparisonsRepository.findById(comparisonId)
+    public ProductComparisons renameComparison(Long userId, Long comparisonId, String comparisonName) {
+        ProductComparisons comparison = productComparisonsRepository.findByComparisonIdAndUser_UserId(comparisonId, userId)
                                                                     .orElseThrow(() -> new IllegalArgumentException("비교함을 찾을 수 없습니다."));
 
         comparison.setComparisonName(comparisonName);

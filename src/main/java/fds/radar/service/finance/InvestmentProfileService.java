@@ -28,7 +28,7 @@ public class InvestmentProfileService {
     // 설문 응답을 받아 점수 계산 후 투자성향 진단결과 저장
     // 진단은 여러 번 가능
     @Transactional
-    public InvestmentProfiles diagnose(InvestmentDiagnosisRequestDTO dto) {
+    public InvestmentProfiles diagnose(Long userId, InvestmentDiagnosisRequestDTO dto) {
         Users user = userRepository.findById(dto.getUserId())
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
