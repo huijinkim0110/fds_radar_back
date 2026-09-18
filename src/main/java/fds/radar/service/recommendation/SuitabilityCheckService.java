@@ -57,7 +57,7 @@ public class SuitabilityCheckService {
     // - 위험등급 / 투자기간 / 원금보장 3가지만 검사(금액은 가입단곙서)
     @Transactional
     public SuitabilityChecks checkSuitability(Long userId, SuitabilityCheckRequestDTO dto) {
-        Users user = userRepository.findById(dto.getUserId())
+        Users user = userRepository.findById(userId)
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         FinancialProducts product = financialProductsRepository.findById(dto.getProductId())

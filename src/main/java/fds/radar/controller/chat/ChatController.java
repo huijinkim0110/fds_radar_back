@@ -73,7 +73,7 @@ public class ChatController {
     // 사용자 본인의 상담 내역 조회(마이페이지 메뉴)
     // GET /chat/sessions/history?userId=1
     @GetMapping("/history")
-    public ResponseEntity<List<ChatSessionListDTO>> getSessionHistory(@RequestParam Long userId) {
+    public ResponseEntity<List<ChatSessionListDTO>> getSessionHistory(@AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(chatService.getSessionHistory(userId));
     }
 

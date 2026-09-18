@@ -26,8 +26,8 @@ public class AiRecommendationService {
                                                     .build();
 
     // FastAPI 증권 추천 서버 호출
-    public AiRecommendationResponseDTO getSecuritiesRecommendation(RecommendationRequestDTO dto) {
-        InvestmentProfiles profile = investmentProfileService.getLatestProfile(dto.getUserId());
+    public AiRecommendationResponseDTO getSecuritiesRecommendation(Long userId, RecommendationRequestDTO dto) {
+        InvestmentProfiles profile = investmentProfileService.getLatestProfile(userId);
 
         AiSecuritiesRequestDTO aiRequest = AiSecuritiesRequestDTO.builder()
                                                                  .age(profile.getAge())
@@ -49,8 +49,8 @@ public class AiRecommendationService {
     }
 
     // FastAPI 보험 추천 서버 호출
-    public AiRecommendationResponseDTO getInsuranceRecommendation(RecommendationRequestDTO dto) {
-        InvestmentProfiles profile = investmentProfileService.getLatestProfile(dto.getUserId());
+    public AiRecommendationResponseDTO getInsuranceRecommendation(Long userId, RecommendationRequestDTO dto) {
+        InvestmentProfiles profile = investmentProfileService.getLatestProfile(userId);
 
         AiInsuranceRequestDTO aiRequest = AiInsuranceRequestDTO.builder()
                                                                  .age(profile.getAge())

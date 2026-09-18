@@ -26,7 +26,7 @@ public class FinancialGoalsService {
     // - 등록 시점엔 진행금액 0원, 상태는 IN_PROGRESS(기본값)
     @Transactional
     public FinancialGoalResponseDTO createGoal(Long userId, FinancialGoalRequestDTO dto) {
-        Users user = userRepository.findById(dto.getUserId())
+        Users user = userRepository.findById(userId)
                                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         FinancialGoals goal = FinancialGoals.builder()

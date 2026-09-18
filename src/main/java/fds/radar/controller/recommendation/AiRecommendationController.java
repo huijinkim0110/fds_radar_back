@@ -1,6 +1,7 @@
 package fds.radar.controller.recommendation;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +23,10 @@ public class AiRecommendationController {
     // POST /recommendations/securities
     @PostMapping("/securities")
     public ResponseEntity<AiRecommendationResponseDTO> getSecuritiesRecommendation(
+            @AuthenticationPrincipal Long userId,
             @RequestBody RecommendationRequestDTO dto) {
         
-        AiRecommendationResponseDTO result = aiRecommendationService.getSecuritiesRecommendation(dto);
+        AiRecommendationResponseDTO result = aiRecommendationService.getSecuritiesRecommendation(userId, dto);
         return ResponseEntity.ok(result);
     }
 }

@@ -56,11 +56,11 @@ public class UnifiedRecommendationService {
         List<RecommendedProductDTO> allResults = new ArrayList<>();
 
         // 1. 증권 AI 추천
-        AiRecommendationResponseDTO securities = aiRecommendationService.getSecuritiesRecommendation(dto);
+        AiRecommendationResponseDTO securities = aiRecommendationService.getSecuritiesRecommendation(userId, dto);
         allResults.addAll(mapAiResultsToProducts(securities, "AI_SECURITIES", goal));
 
         // 2. 보험 AI 추천
-        AiRecommendationResponseDTO insurance = aiRecommendationService.getInsuranceRecommendation(dto);
+        AiRecommendationResponseDTO insurance = aiRecommendationService.getInsuranceRecommendation(userId, dto);
         allResults.addAll(mapAiResultsToProducts(insurance, "AI_INSURANCE", goal));
 
         // 3. 예적금 규칙기반 추천
