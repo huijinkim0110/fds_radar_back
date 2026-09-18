@@ -123,9 +123,27 @@ public class TransactionService {
             throw new BusinessException("출금할 수 없는 계좌입니다.");
         }
 
+        Accounts receiverAccount = accountRepository.findByAccountNumberNormalized(request.getReceiverAccountNumber())
+                .orElseThrow(() -> new NotFoundException("받는 계좌를 찾을 수 없습니다."));
+        if (receiverAccount.getAccountId().equals(account.getAccountId())) {
+            throw new BusinessException("본인 계좌로는 이체할 수 없습니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
         TransferRecipients recipient = transferRepository
-                .findByRecipientIdAndUser_UserId(request.getRecipientId(), userId)
-                .orElseThrow(() -> new NotFoundException("수취인을 찾을 수 없습니다."));
+                .findByUser_UserIdAndAccountNumber(userId, request.getReceiverAccountNumber())
+                .orElseGet(() -> transferRepository.save(
+                        TransferRecipients.builder()
+                                .user(user)
+                                .institution(receiverAccount.getInstitution())
+                                .recipientName(receiverAccount.getUser().getName())
+                                .accountNumber(request.getReceiverAccountNumber())
+                                .isRegistered(false)
+                                .firstTransferAt(now)
+                                .lastTransferAt(now)
+                                .build()
+                ));
+        recipient.setLastTransferAt(now);
 
         BigDecimal amount = request.getAmount();
         if (account.getBalance().compareTo(amount) < 0) {
@@ -135,8 +153,8 @@ public class TransactionService {
             throw new BusinessException("일일 이체한도를 초과했습니다.");
         }
         account.setBalance(account.getBalance().subtract(amount));
+        receiverAccount.setBalance(receiverAccount.getBalance().add(amount));
 
-        LocalDateTime now = LocalDateTime.now();
         Transactions tx = Transactions.builder()
                 .user(user)
                 .account(account)

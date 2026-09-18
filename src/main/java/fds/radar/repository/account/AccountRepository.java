@@ -30,4 +30,9 @@ public interface AccountRepository extends JpaRepository<Accounts, Long> {
     @Query("SELECT a FROM Accounts a WHERE a.accountId = :id")
     Optional<Accounts> findByAccountIdForUpdate(@Param("id") Long id);
 
+    // 하이픈 유무 상관없이 계좌번호 비교 (DB는 "110-XXXX-XXXX-XX" 형태로 저장됨)
+    @Query("SELECT a FROM Accounts a WHERE REPLACE(a.accountNumber, '-', '') = REPLACE(:accountNumber, '-', '')")
+    Optional<Accounts> findByAccountNumberNormalized(@Param("accountNumber") String accountNumber);
+
+
 }

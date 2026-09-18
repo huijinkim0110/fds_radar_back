@@ -1,6 +1,8 @@
 package fds.radar.exception;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,6 +18,33 @@ public class GlobalExceptionHandler {
                                           .build();
 
         return ResponseEntity.status(e.getStatus()).body(body);
+    }
+
+    // @Valid 검증 실패 -> 400
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("잘못된 요청입니다.");
+
+        ErrorResponse body = ErrorResponse.builder()
+                                          .errorCode("VALIDATION_ERROR")
+                                          .message(message)
+                                          .build();
+
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    // 필수 쿼리파라미터 누락 -> 400
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParam(MissingServletRequestParameterException e) {
+        ErrorResponse body = ErrorResponse.builder()
+                                          .errorCode("MISSING_PARAMETER")
+                                          .message(e.getMessage())
+                                          .build();
+
+        return ResponseEntity.badRequest().body(body);
     }
 
     // 지금까지 써온 IllegalStateException -> 400 Bad Request로 변환

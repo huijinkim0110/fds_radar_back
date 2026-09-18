@@ -12,8 +12,8 @@ public class TransferRequest {
     @NotNull(message = "출금 계좌는 필수입니다.")
     private Long fromAccountId;
 
-    @NotNull(message = "수취인은 필수입니다.")
-    private Long recipientId;
+    @NotBlank(message = "받는 계좌번호는 필수입니다.")
+    private String receiverAccountNumber;
 
     @NotNull(message = "이체 금액은 필수입니다")
     @DecimalMin(value = "0", inclusive = false, message = "금액은 0보다 커야 합니다")
@@ -30,7 +30,7 @@ public class TransferRequest {
     public TransferRequest() {}
 
     public Long getFromAccountId() { return fromAccountId; }
-    public Long getRecipientId() { return recipientId; }
+    public String getReceiverAccountNumber() { return receiverAccountNumber; }
     public BigDecimal getAmount() { return amount; }
     public TransactionChannel getChannel() { return channel; }
     public Long getDeviceId() { return deviceId; }

@@ -34,7 +34,7 @@ public class TransferController {
     // 내 수취인 목록
     @GetMapping
     public ResponseEntity<List<TransferRecipientResponse>> getMyRecipients(
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(transferRecipientService.getMyRecipient(userId));
     }
 
